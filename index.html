@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>AAA RBT - Student Attendance & Schedule System</title>
+  <link rel="icon" type="image/png" href="assets/robot_badge.png">
+
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css?v=pro_mobile_v5">
+
+  <!-- HTML2PDF Library for Direct PDF Export (Local Fast Bundle) -->
+  <script src="html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header" style="display:flex; align-items:center; justify-content:space-between; gap:0.75rem;">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="assets/robot_badge.png" style="width:48px; height:48px; border-radius:12px; object-fit:contain; box-shadow:0 3px 10px rgba(220,38,38,0.3);" alt="Robotics Logo" onerror="this.src='assets/robot_logo.svg'" />
+          <div class="sidebar-brand-text">
+            <h1>AAA RBT</h1>
+            <p>Robotics System</p>
+          </div>
+        </div>
+        <button id="closeSidebarBtn" class="mobile-sidebar-close" onclick="app.closeMobileSidebar()"
+          aria-label="Close navigation">✕</button>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-tab-btn active" data-tab="checkin">
+          <span class="nav-item-text">Check in</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="matrix">
+          <span class="nav-item-text">Student List</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="students">
+          <span class="nav-item-text">Students Roster</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="logs">
+          <span class="nav-item-text">Attendance Logs</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="analytics">
+          <span class="nav-item-text">Dashboard</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="termcontrol">
+          <span class="nav-item-text">Term Control</span>
+        </button>
+
+        <button class="nav-tab-btn" data-tab="examcontrol">
+          <span class="nav-item-text">Exam Control</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT WRAPPER -->
+    <div class="main-wrapper">
+
+      <!-- TOP NAVBAR -->
+      <header class="top-navbar">
+        <div class="top-navbar-left" style="display:flex; align-items:center; gap:0.75rem;">
+          <button id="mobileMenuBtn" class="mobile-menu-btn" onclick="app.toggleMobileSidebar()"
+            aria-label="Open Navigation Menu" title="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="top-navbar-title">
+            <h2 class="title-text-full">AAA Robotics Attendance</h2>
+            <h2 class="title-text-short">AAA RBT</h2>
+            <div id="topLiveClock"
+              style="font-size:0.775rem; color:var(--accent-blue); font-weight:600; margin-top:0.15rem;"></div>
+          </div>
+        </div>
+
+        <div class="top-navbar-right">
+
+          <button id="openTelegramModalBtn" class="btn btn-secondary top-nav-btn"
+            style="font-size:0.825rem; padding:0.45rem 0.85rem; display:flex; align-items:center; gap:0.4rem; border-radius:20px;"
+            title="Telegram Alert Settings">
+            <span class="btn-icon">✈️</span>
+            <span class="btn-text">Telegram Alerts</span>
+            <span id="telegramStatusPill" class="telegram-pill off">OFF</span>
+          </button>
+
+          <button id="openReportModalBtn" class="btn btn-primary top-nav-btn"
+            style="font-size:0.825rem; padding:0.45rem 0.85rem; display:flex; align-items:center; gap:0.4rem;"
+            title="View Executive Attendance Report Table & Save Report">
+            <span class="btn-icon">📋</span>
+            <span class="btn-text">Daily Report</span>
+          </button>
+
+          <!-- Firebase Realtime Sync Status Indicator (Hidden from UI) -->
+          <div id="firebaseLiveBadge" style="display:none !important;"></div>
+
+          <!-- Interactive Admin Profile Trigger -->
+          <div id="userProfileBtn" class="user-profile-top"
+            onclick="if(window.app && window.app.openProfileModal){window.app.openProfileModal();}else if(window.openProfileModal){window.openProfileModal();}"
+            title="Click to view & edit Profile (Name, Image & Settings)">
+            <div style="position:relative; display:inline-block;">
+              <img id="topNavAvatar" class="user-avatar-top" src="assets/favicon.svg" alt="User Avatar"
+                onerror="this.src='assets/favicon.svg'" />
+              <span class="avatar-online-dot" title="Active Session"></span>
+            </div>
+            <div class="user-meta-top">
+              <strong id="topNavUser">Not Signed In</strong>
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                <span id="topNavRole">Please Log In</span>
+                <span id="topNavReadOnlyBadge"
+                  style="display:none; background:#fef3c7; color:#b45309; border:1px solid #fde047; font-size:0.65rem; font-weight:700; padding:0.1rem 0.45rem; border-radius:10px;">🔒
+                  Read Only</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Standalone Logout Button -->
+          <button id="logoutTopBtn" class="btn btn-secondary"
+            style="padding:0.35rem 0.7rem; font-size:0.75rem; border-radius:8px; display:flex; align-items:center; gap:0.35rem;"
+            onclick="app.logoutUser()" title="Logout of System">
+            <span class="btn-icon">⎋</span>
+            <span class="btn-text">Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+
+        <!-- HERO STAT CARDS -->
+        <div class="pro-stats-grid">
+
+          <div class="pro-stat-card blue">
+            <div class="pro-stat-header">
+              <span class="pro-stat-title">Total Enrolled</span>
+              <div class="pro-stat-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="pro-stat-body">
+              <div class="pro-stat-value" id="statTotalStudents">0</div>
+              <span class="pro-stat-badge positive"><span class="live-pulse-dot" style="width:6px; height:6px; background:#10b981; border-radius:50%; display:inline-block;"></span> Active Roster</span>
+            </div>
+            <div class="pro-stat-footer-bar blue"></div>
+          </div>
+
+          <div class="pro-stat-card green">
+            <div class="pro-stat-header">
+              <span class="pro-stat-title">Present Today</span>
+              <div class="pro-stat-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div class="pro-stat-body">
+              <div class="pro-stat-value" id="statPresent">0</div>
+              <span class="pro-stat-badge positive">On-Time</span>
+            </div>
+            <div class="pro-stat-footer-bar green"></div>
+          </div>
+
+          <div class="pro-stat-card red">
+            <div class="pro-stat-header">
+              <span class="pro-stat-title">Absent Today</span>
+              <div class="pro-stat-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              </div>
+            </div>
+            <div class="pro-stat-body">
+              <div class="pro-stat-value" id="statAbsent">0</div>
+              <span class="pro-stat-badge neutral">Unexcused</span>
+            </div>
+            <div class="pro-stat-footer-bar red"></div>
+          </div>
+
+          <div class="pro-stat-card amber">
+            <div class="pro-stat-header">
+              <span class="pro-stat-title">Late Arrivals</span>
+              <div class="pro-stat-icon">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div class="pro-stat-body">
+              <div class="pro-stat-value" id="statLate">0</div>
+              <span class="pro-stat-badge alert">Delayed</span>
+            </div>
+            <div class="pro-stat-footer-bar amber"></div>
+          </div>
+
+        </div>
+
+        <!-- TAB 1: QUICK STUDENT ID CHECK-IN -->
+        <section id="checkin-pane" class="tab-pane active">
+          <div class="dashboard-grid">
+
+            <!-- LEFT COLUMN -->
+            <div>
+
+              <!-- Fast Student ID Entry Box -->
+              <div class="pro-card">
+                <div class="pro-card-header">
+                  <h3>Fast Student ID Check in</h3>
+                  <span
+                    style="font-size:0.75rem; color:var(--accent-blue); font-weight:700; background:#e0f2fe; padding:0.2rem 0.6rem; border-radius:12px;">⏰
+                    Class Hours: 8:30 AM – 5:00 PM</span>
+                </div>
+
+                <!-- Read-Only Notice Banner (Shown when User logs in) -->
+                <div id="checkinReadOnlyBanner"
+                  style="display:none; background:#fef3c7; color:#92400e; border:1px solid #fde047; padding:0.75rem 1rem; border-radius:10px; margin:0.85rem 1.25rem 0.25rem 1.25rem; font-size:0.825rem; font-weight:600; align-items:center; gap:0.5rem;">
+                  <span style="font-size:1.1rem;"></span>
+                  <div>
+                    <strong>Read-Only Mode:</strong> Attendance check-in and data mutations are locked for User
+                    accounts. Sign in as an Administrator to record check-ins.
+                  </div>
+                </div>
+
+                <div class="id-checkin-box">
+                  <div style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem; font-weight:600;">
+                    TYPE OR SCAN STUDENT ID / ROLL NUMBER:
+                  </div>
+                  <div style="display:flex; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+                    <input type="text" id="checkinIdInput" class="form-input"
+                      style="flex:1; min-width:180px; font-size:1.15rem; padding:0.75rem 1rem; font-family:monospace; font-weight:700; letter-spacing:0.05em;"
+                      placeholder="Enter ID (e.g. STU-001 or 001)" autofocus />
+                    <select id="checkinBranchSelect" class="form-select" style="font-weight:600; width:180px;"
+                      onchange="app.handleCheckinBranchChange(this)" title="Select Check-in Branch">
+                      <option value="auto">Auto (Student Branch)</option>
+                      <option value="Funmall">Funmall</option>
+                      <option value="Aeon1">Aeon1</option>
+                      <option value="Peng Huot">Peng Huot</option>
+                      <option value="Chip Mong 271">Chip Mong 271</option>
+                      <option value="OCIC">OCIC</option>
+                      <option value="__new__">+ Create New Branch...</option>
+                    </select>
+                    <select id="checkinStatusSelect" class="form-select" style="font-weight:600; width:155px;">
+                      <option value="present">Mark Present</option>
+                      <option value="late">Mark Late</option>
+                      <option value="makeup">Makeup Class</option>
+                      <option value="absent">Mark Absent</option>
+                    </select>
+                    <button id="checkinSubmitBtn" class="btn btn-primary"
+                      style="padding:0.75rem 1.5rem; font-size:1rem;">
+                      Check In
+                    </button>
+                  </div>
+                  <div
+                    style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; font-size:0.775rem; color:var(--text-muted);">
+                    <span>Press <strong>ENTER</strong> key after typing ID to record attendance immediately.</span>
+                    <span id="activeCheckinBranchBadge"
+                      style="background:#f1f5f9; padding:0.25rem 0.65rem; border-radius:8px; font-weight:700; color:var(--text-primary); border:1px solid #e2e8f0;">
+                      Check-in Branch: <strong id="activeBranchLabel" style="color:var(--accent-blue);">Auto (Student
+                        Branch)</strong>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- One-Tap Student Tiles Grid -->
+                <div style="margin-top:1.5rem;">
+                  <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                      <h4 style="font-size:0.9rem; font-weight:700; color:var(--text-primary);">One-Tap Quick Attendance
+                        Cards</h4>
+                      <span style="font-size:0.75rem; color:var(--text-secondary);">Click any student to mark
+                        attendance</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                      <label style="font-size:0.75rem; font-weight:600; color:var(--text-secondary);">Branch:</label>
+                      <select id="quickTilesBranchFilter" class="form-select"
+                        style="font-size:0.75rem; padding:0.25rem 0.5rem; font-weight:600;"
+                        onchange="app.renderQuickStudentTiles()">
+                        <option value="all">All Branches</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div id="quickStudentTilesGrid" class="quick-student-grid"></div>
+                </div>
+              </div>
+
+              <!-- Weekly Attendance Trend Widget -->
+              <div class="pro-card">
+                <div class="pro-card-header">
+                  <h3>Weekly Attendance Overview</h3>
+                  <span style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">Current Week</span>
+                </div>
+
+                <div class="weekly-chart-container">
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">96%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" style="height:96%;"></div>
+                    </div>
+                    <span class="chart-bar-label">Mon</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">94%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" style="height:94%;"></div>
+                    </div>
+                    <span class="chart-bar-label">Tue</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">98%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" style="height:98%;"></div>
+                    </div>
+                    <span class="chart-bar-label">Wed</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">92%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" style="height:92%;"></div>
+                    </div>
+                    <span class="chart-bar-label">Thu</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">95%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill" style="height:95%;"></div>
+                    </div>
+                    <span class="chart-bar-label">Fri</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">100%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill highlight" style="height:100%;"></div>
+                    </div>
+                    <span class="chart-bar-label" style="color:var(--accent-green);">Sat</span>
+                  </div>
+                  <div class="chart-bar-group">
+                    <span class="chart-bar-value">100%</span>
+                    <div class="chart-bar-track">
+                      <div class="chart-bar-fill highlight" style="height:100%;"></div>
+                    </div>
+                    <span class="chart-bar-label" style="color:var(--accent-green);">Sun</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+
+              <!-- Last Checked-In Profile Card -->
+              <div class="pro-card" id="liveMatchCard">
+                <div class="pro-card-header">
+                  <h3>Last Checked-in Student</h3>
+                  <span class="badge-status present">ACTIVE LOG</span>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:1rem;">
+                  <img id="matchAvatar" class="user-avatar-top" style="width:68px; height:68px; object-fit:cover;"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                    alt="Student" />
+                  <div>
+                    <h4 id="matchName" style="font-size:1.1rem; font-weight:800; color:var(--text-primary);">SOPHIA CHEN
+                    </h4>
+                    <p id="matchDetails" style="font-size:0.8rem; color:var(--text-secondary);">STU-002 • 3D (Sunday)
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style="background:#f8fafc; padding:0.75rem 1rem; border-radius:8px; border:1px solid #e2e8f0; font-size:0.8rem; display:flex; justify-content:space-between;">
+                  <span>Verification Method:</span>
+                  <strong id="matchModeText" style="color:var(--accent-blue);">ID Terminal Check-in</strong>
+                </div>
+              </div>
+
+              <!-- Quick Admin Actions -->
+              <div class="pro-card">
+                <div class="pro-card-header">
+                  <h3>Quick Admin Actions</h3>
+                </div>
+                <div class="responsive-grid-2col" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                  <button id="openAddStudentBtn" class="btn btn-primary" style="font-size:0.775rem;"
+                    onclick="app.openAddStudentModal()">+ Register Student</button>
+                  <button id="exportCsvBtn" class="btn btn-success" style="font-size:0.775rem;">Export CSV Log</button>
+                </div>
+              </div>
+
+              <!-- Recent Activity Feed -->
+              <div class="pro-card">
+                <div class="pro-card-header">
+                  <h3>Recent Check-ins Log</h3>
+                  <span style="font-size:0.725rem; color:var(--accent-blue); font-weight:600;">Live Feed</span>
+                </div>
+                <div id="recentCheckinFeed"
+                  style="display:flex; flex-direction:column; gap:0.65rem; max-height:240px; overflow-y:auto;"></div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
+        <!-- TAB 2: STUDENT LIST ATTENDANCE MATRIX -->
+        <section id="matrix-pane" class="tab-pane">
+          <div class="pro-card">
+            <div class="pro-card-header">
+              <h3>Student List Attendance Matrix</h3>
+              <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:600;">Branch:</label>
+                  <select id="matrixBranchFilter" class="form-select" style="font-weight:600;">
+                    <option value="all">All Branches</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <label style="font-size:0.8rem; color:var(--text-secondary); font-weight:600;">Day Switch:</label>
+                  <select id="weekendDayFilter" class="form-select" style="font-weight:600;">
+                    <option value="all">All Days (Sat & Sun)</option>
+                    <option value="saturday">Saturdays Only</option>
+                    <option value="sunday">Sundays Only</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <label style="font-size:0.8rem; color:var(--text-secondary);">Start Date:</label>
+                  <input type="date" id="matrixStartDatePicker" class="form-input" value="2026-08-01" />
+                </div>
+                <button id="export11WeekCsvBtn" class="btn btn-success">Export Matrix (CSV)</button>
+              </div>
+            </div>
+
+            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:1rem;">
+              Click any cell to toggle status: <span style="color:#15803d; font-weight:700;">P = Present</span> • <span
+                style="color:#b45309; font-weight:700;">L = Late</span> • <span
+                style="color:#94a3b8; font-weight:700;">A = Absent</span>
+            </p>
+
+            <div class="matrix-wrapper">
+              <table class="matrix-table">
+                <thead>
+                  <tr id="matrixHeaderRow"></tr>
+                </thead>
+                <tbody id="matrixTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: STUDENTS DIRECTORY -->
+        <section id="students-pane" class="tab-pane">
+          <div class="pro-card">
+            <div class="pro-card-header">
+              <h3>Student Roster & Profiles</h3>
+              <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                <button id="rosterRestoreBtn" class="btn btn-secondary" style="font-size:0.775rem;"
+                  onclick="app.openRestoreModal()">Restore Deleted Students</button>
+                <button id="rosterCreateBranchBtn" class="btn btn-secondary" style="font-size:0.775rem;"
+                  onclick="app.openCreateBranchModal()">Create Branch</button>
+                <button id="rosterAddStudentBtn" class="btn btn-primary" style="font-size:0.775rem;"
+                  onclick="app.openAddStudentModal()">+ Register Student</button>
+              </div>
+            </div>
+
+            <div style="margin-bottom:1.25rem; display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+              <input type="text" id="studentSearchInput" class="form-input" style="width:320px;"
+                placeholder="Search by name, ID, class, or branch..." />
+              <div style="display:flex; align-items:center; gap:0.4rem;">
+                <label for="studentBranchFilter"
+                  style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); white-space:nowrap;">Branch:</label>
+                <select id="studentBranchFilter" class="form-input"
+                  style="width:190px; font-weight:600; padding:0.45rem 0.75rem; cursor:pointer;">
+                  <option value="all">All Branches</option>
+                  <option value="Funmall">Funmall</option>
+                  <option value="Aeon1">Aeon1</option>
+                  <option value="Peng Huot">Peng Huot</option>
+                  <option value="Chip Mong 271">Chip Mong 271</option>
+                  <option value="OCIC">OCIC</option>
+                  <option value="__new__">Create Branch</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th>Branch</th>
+                    <th>Class / Grade</th>
+                    <th>Schedule Day</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="studentTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: ATTENDANCE & ADMIN ACTIVITY LOGS -->
+        <section id="logs-pane" class="tab-pane">
+          <div class="pro-card">
+            <div class="pro-card-header" style="flex-wrap:wrap; gap:1rem; align-items:center;">
+              <div>
+                <h3 id="logsHeaderTitle">Attendance & Admin Audit Logs</h3>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">
+                  Real-time synchronization for student check-ins and administrator login activity.
+                </p>
+              </div>
+
+              <!-- Log Switcher Sub-Tabs -->
+              <div style="display:flex; background:#f1f5f9; padding:0.25rem; border-radius:10px; gap:0.35rem;">
+                <button type="button" id="tabBtnStudentLogs" class="btn"
+                  style="border:none; padding:0.45rem 0.9rem; border-radius:8px; font-weight:700; font-size:0.825rem; background:#ffffff; color:#0f172a; box-shadow:0 2px 5px rgba(0,0,0,0.06);"
+                  onclick="app.switchLogsView('student')">
+                  🎓 Student Logs
+                </button>
+                <button type="button" id="tabBtnAdminLogs" class="btn"
+                  style="border:none; padding:0.45rem 0.9rem; border-radius:8px; font-weight:600; font-size:0.825rem; background:transparent; color:#64748b; display:flex; align-items:center; gap:0.4rem;"
+                  onclick="app.switchLogsView('admin')">
+                  🛡️ Admin Logins & Activity
+                  <span id="adminLogsCountBadge"
+                    style="background:var(--accent-blue); color:#fff; font-size:0.7rem; padding:0.1rem 0.45rem; border-radius:12px; font-weight:700;">0</span>
+                </button>
+              </div>
+
+              <!-- Export / Action Controls -->
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <button id="exportLogsBtn" onclick="app.exportCurrentLogs()" class="btn btn-success"
+                  style="font-size:0.825rem;">
+                  Export CSV
+                </button>
+                <button id="addAdminLogsBtn" type="button" onclick="app.openNewAdminModal()" class="btn btn-primary"
+                  style="display:none; font-size:0.825rem; align-items:center; gap:0.35rem;">
+                  + Add Admin
+                </button>
+              </div>
+            </div>
+
+            <!-- VIEW 1: STUDENT ATTENDANCE LOGS -->
+            <div id="studentLogsContainer">
+              <div style="display:flex; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="logSearchInput" class="form-input" style="width:280px;"
+                  placeholder="Search student logs..." oninput="app.onLogSearch(this.value)" />
+                <input type="date" id="logDateFilter" class="form-input" onchange="app.onLogDateFilter(this.value)" />
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <label
+                    style="font-size:0.8rem; font-weight:600; color:var(--text-secondary); white-space:nowrap;">Branch:</label>
+                  <select id="logBranchFilter" class="form-input"
+                    style="width:190px; font-weight:600; padding:0.45rem 0.75rem; cursor:pointer;"
+                    onchange="app.renderAttendanceTable()">
+                    <option value="all">All Branches</option>
+                    <option value="Funmall">Funmall</option>
+                    <option value="Aeon1">Aeon1</option>
+                    <option value="Peng Huot">Peng Huot</option>
+                    <option value="Chip Mong 271">Chip Mong 271</option>
+                    <option value="OCIC">OCIC</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Branch</th>
+                      <th>Class</th>
+                      <th>Timestamp</th>
+                      <th>Status</th>
+                      <th>Method</th>
+                      <th>Manual Override</th>
+                    </tr>
+                  </thead>
+                  <tbody id="attendanceTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- VIEW 2: ADMIN ACTIVITY & LOGIN LOGS -->
+            <div id="adminLogsContainer" style="display:none;">
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap;">
+                <div style="display:flex; gap:0.75rem; flex:1; min-width:280px; flex-wrap:wrap;">
+                  <input type="text" id="adminLogSearchInput" class="form-input" style="width:280px;"
+                    placeholder="Search admin, action, or note..." oninput="app.filterAdminLogs()" />
+                  <select id="adminLogActionFilter" class="form-select" style="max-width:200px; font-weight:600;"
+                    onchange="app.filterAdminLogs()">
+                    <option value="all">All Actions</option>
+                    <option value="ADMIN_LOGIN">Admin Logins</option>
+                    <option value="ADMIN_LOGOUT">Admin Logouts</option>
+                    <option value="ADMIN_CREATED">Admin Accounts Created</option>
+                    <option value="STUDENT_DELETED">Student Deletions</option>
+                    <option value="STUDENT_RESTORED">Student Restores</option>
+                    <option value="STUDENT_REGISTERED">Student Additions</option>
+                  </select>
+                </div>
+                <div style="display:none; gap:0.5rem; align-items:center;">
+                  <span id="adminLogsRealtimeDot" style="display:none !important;">
+                    <span style="width:7px; height:7px; border-radius:50%; background:#10b981;"></span>
+                    Live Firebase RTDB
+                  </span>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Admin Name</th>
+                      <th>Role</th>
+                      <th>Action</th>
+                      <th>Activity Details</th>
+                      <th>Date & Time</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminLogsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- TAB 5: EXECUTIVE DASHBOARD -->
+        <section id="analytics-pane" class="tab-pane">
+          <div class="pro-card" style="border-radius:18px; border:1px solid rgba(226,232,240,0.9); box-shadow:0 4px 25px -4px rgba(15,23,42,0.06);">
+            <div class="pro-card-header" style="flex-wrap:wrap; gap:1rem; padding-bottom:1.1rem; margin-bottom:1.25rem;">
+              <div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+                  <span class="live-pulse-dot"></span>
+                  <span style="font-size:0.725rem; font-weight:800; color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.06em;">Real-Time Pipeline</span>
+                </div>
+                <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-primary); margin:0; font-family:'Outfit', sans-serif;">Executive Attendance & Analytics Dashboard</h3>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.2rem;">Real-time attendance metrics, multi-class performance breakdown, and biometric diagnostic telemetry.</p>
+              </div>
+
+              <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:0.35rem; background:#f8fafc; padding:0.2rem 0.5rem; border-radius:10px; border:1px solid #e2e8f0;">
+                  <label style="font-size:0.75rem; color:var(--text-secondary); font-weight:700;">Class:</label>
+                  <select id="dashClassFilter" class="form-select" style="font-weight:700; font-size:0.8rem; padding:0.35rem 0.65rem; border:none; background:transparent; cursor:pointer;">
+                    <option value="all">All Classes</option>
+                  </select>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.35rem; background:#f8fafc; padding:0.2rem 0.5rem; border-radius:10px; border:1px solid #e2e8f0;">
+                  <label style="font-size:0.75rem; color:var(--text-secondary); font-weight:700;">Range:</label>
+                  <select id="dashRangeFilter" class="form-select" style="font-weight:700; font-size:0.8rem; padding:0.35rem 0.65rem; border:none; background:transparent; cursor:pointer;">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="all">All Time</option>
+                  </select>
+                </div>
+                <button id="dashExportReportBtn" class="btn btn-primary"
+                  style="font-size:0.825rem; padding:0.45rem 1rem; border-radius:10px; display:inline-flex; align-items:center; gap:0.4rem; font-weight:700; box-shadow:0 4px 12px rgba(37,99,235,0.25);">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Export Report (PDF)
+                </button>
+              </div>
+            </div>
+            <div id="analyticsContainer" style="padding-top:0.25rem;"></div>
+          </div>
+        </section>
+
+        <!-- TAB 6: TERM CONTROL & ACADEMIC MANAGEMENT -->
+        <section id="termcontrol-pane" class="tab-pane">
+          <div class="pro-card">
+            <div class="pro-card-header" style="flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h3 style="display:flex; align-items:center; gap:0.5rem;">
+                  <span>Term Control & Academic Session Management</span>
+                </h3>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">
+                  Configure active terms, manage 11-Week class matrix schedules, set check-in cutoffs, and session
+                  rules.
+                </p>
+              </div>
+
+              <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-secondary" style="font-size:0.825rem; padding:0.45rem 0.85rem;"
+                  onclick="app.openNewTermModal()">
+                  + Create New Term
+                </button>
+                <button class="btn btn-primary" style="font-size:0.825rem; padding:0.45rem 0.85rem;"
+                  onclick="app.syncTermWeek()" title="Sync current session week with today's real date">
+                  📅 Sync Week with Real Date
+                </button>
+                <button class="btn btn-secondary" style="font-size:0.825rem; padding:0.45rem 0.85rem;"
+                  onclick="app.advanceTermWeek()" title="Advance week manually">
+                  + Advance Week
+                </button>
+              </div>
+            </div>
+
+            <div id="termControlContainer" style="padding-top:0.75rem;"></div>
+          </div>
+        </section>
+
+        <!-- TAB 7: EXAM CONTROL & ASSESSMENTS -->
+        <section id="examcontrol-pane" class="tab-pane">
+          <div class="pro-card">
+            <div class="pro-card-header" style="flex-wrap:wrap; gap:1rem;">
+              <div>
+                <h3 style="display:flex; align-items:center; gap:0.5rem;">
+                  <span>Exam Control & Student Grade Management</span>
+                </h3>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">
+                  Manage Robotics Mid-Term exams, practical project scores, theory quizzes, and class grade sheets.
+                </p>
+              </div>
+
+              <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+                <button id="openNewExamBtn" class="btn btn-primary" style="font-size:0.825rem; padding:0.45rem 0.85rem;"
+                  onclick="app.openNewExamModal()">
+                  + Create New Exam
+                </button>
+              </div>
+            </div>
+
+            <div id="examControlContainer" style="padding-top:0.75rem;"></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- REGISTER / EDIT STUDENT MODAL -->
+    <div id="studentModal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="studentModalTitle" style="font-size:1.1rem; color:#ffffff;">Register New Student</h3>
+          <button id="closeModalBtn" class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;">✕</button>
+        </div>
+
+        <form id="studentForm">
+          <input type="hidden" id="editingStudentId" value="" />
+          <div class="modal-body">
+            <div class="form-grid">
+
+              <div class="form-group full-width">
+                <label>Select / Upload Student Image</label>
+                <div style="display:flex; gap:0.75rem; align-items:center; margin-top:0.35rem; margin-bottom:0.5rem;">
+                  <img id="snapPreviewImg"
+                    style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-blue);"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                    alt="Avatar" />
+                  <div id="studentPhotoInputsWrapper" style="display:flex; flex-direction:column; gap:0.35rem; flex:1;">
+                    <input type="file" id="avatarFileInput" accept="image/*" class="form-input"
+                      style="font-size:0.775rem;" />
+                    <input type="url" id="regPhotoUrl" class="form-input" placeholder="Or paste image URL (https://...)"
+                      style="font-size:0.775rem;" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="regName">Full Name *</label>
+                <input type="text" id="regName" class="form-input" required placeholder="e.g. JANE DOE"
+                  style="text-transform: uppercase;" />
+              </div>
+
+              <div class="form-group">
+                <label for="regId">Student ID (Auto-Set)</label>
+                <input type="text" id="regId" class="form-input"
+                  style="font-weight:700; font-family:monospace; background:#f8fafc;" readonly
+                  placeholder="e.g. STU-005" />
+              </div>
+
+              <div class="form-group">
+                <label for="regClass">Subject Choice / Class *</label>
+                <select id="regClass" class="form-select" required style="font-weight:600;">
+                  <option value="AI">AI</option>
+                  <option value="3D">3D</option>
+                  <option value="HTML">HTML</option>
+                  <option value="Python">Python</option>
+                  <option value="Level 1">Level 1</option>
+                  <option value="Level 2">Level 2</option>
+                  <option value="Level 3">Level 3</option>
+                  <option value="Level 4">Level 4</option>
+                  <option value="Level 5">Level 5</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="regDept">Schedule Day *</label>
+                <select id="regDept" class="form-select" required style="font-weight:600;">
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="regBranch">Academy Branch *</label>
+                <select id="regBranch" class="form-select" required style="font-weight:600;"
+                  onchange="app.handleBranchSelectChange(this)">
+                  <option value="Funmall">Funmall</option>
+                  <option value="Aeon1">Aeon1</option>
+                  <option value="Peng Huot">Peng Huot</option>
+                  <option value="Chip Mong 271">Chip Mong 271</option>
+                  <option value="OCIC">OCIC</option>
+                  <option value="__new__">Create Branch</option>
+                </select>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" id="deleteStudentModalBtn" class="btn btn-danger" style="display:none;"
+              onclick="app.deleteStudentFromModal()">Delete Student</button>
+            <div style="display:flex; gap:0.75rem;">
+              <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+              <button type="button" id="saveStudentSubmitBtn" class="btn btn-primary"
+                onclick="app.handleSaveStudent()">Save Student</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TELEGRAM BOT ALERT CONFIGURATION MODAL -->
+    <div id="telegramModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:520px;">
+        <div class="modal-header" style="background:#0088cc;">
+          <h3 style="font-size:1.1rem; color:#ffffff; display:flex; align-items:center; gap:0.5rem;">
+            Telegram Alert Settings
+          </h3>
+          <button id="closeTelegramModalBtn" class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;">✕</button>
+        </div>
+
+        <form id="telegramForm">
+          <div class="modal-body">
+
+            <div
+              style="background:#f8fafc; border:1px solid var(--border-color); border-left:4px solid #0088cc; padding:0.85rem 1rem; border-radius:var(--radius-md); margin-bottom:1.25rem; font-size:0.825rem; color:var(--text-secondary);">
+              <strong>How to connect Telegram Bot:</strong>
+              <ol style="margin-top:0.4rem; padding-left:1.2rem; display:flex; flex-direction:column; gap:0.25rem;">
+                <li>Search for <strong>@BotFather</strong> on Telegram and send <code>/newbot</code> to get your
+                  <strong>Bot Token</strong>.
+                </li>
+                <li>Add your bot to your channel/group or chat with it, then enter your <strong>Chat ID</strong> (e.g.
+                  <code>-100123456789</code> or <code>@channelname</code>).
+                </li>
+              </ol>
+            </div>
+
+            <div class="form-group"
+              style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; padding:0.6rem 0.8rem; background:#f1f5f9; border-radius:8px;">
+              <label for="telegramEnabled" style="font-weight:700; color:var(--text-primary); cursor:pointer;">Enable
+                Live Telegram Instant Alerts</label>
+              <input type="checkbox" id="telegramEnabled" style="width:20px; height:20px; cursor:pointer;" />
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label for="telegramBotToken">Telegram Bot Token *</label>
+              <input type="text" id="telegramBotToken" class="form-input"
+                style="font-family:monospace; font-size:0.85rem;"
+                placeholder="e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." />
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label for="telegramChatId">Telegram Chat ID / Channel *</label>
+              <input type="text" id="telegramChatId" class="form-input"
+                style="font-family:monospace; font-size:0.85rem;" placeholder="e.g. -100123456789 or @school_channel" />
+            </div>
+
+          </div>
+
+          <div class="modal-footer"
+            style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div style="display:flex; gap:0.5rem;">
+              <button type="button" id="testTelegramBtn" class="btn btn-secondary" style="font-size:0.825rem;">
+                Test Connection Alert
+              </button>
+            </div>
+            <div style="display:flex; gap:0.75rem;">
+              <button type="button" id="cancelTelegramModalBtn" class="btn btn-secondary">Cancel</button>
+              <button type="submit" class="btn btn-primary" style="background:#0088cc; border-color:#0088cc;">Save
+                Telegram Settings</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+
+    <!-- EXECUTIVE ATTENDANCE REPORT TABLE MODAL (SAVE AS PDF) -->
+    <div id="reportModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:960px; width:95%; border-radius:18px; overflow:hidden;">
+        <div class="modal-header"
+          style="background:linear-gradient(135deg, #0f172a, #1e293b); color:#ffffff; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
+          <div style="display:flex; align-items:center; gap:0.75rem;">
+            <img src="assets/robot_badge.png" style="width:48px; height:48px; border-radius:12px; object-fit:contain; box-shadow:0 2px 10px rgba(220,38,38,0.3);"
+              alt="Robotics Logo" />
+            <div>
+              <h3 style="font-size:1.15rem; margin:0; font-family:'Outfit', sans-serif; font-weight:700;">Executive
+                Class Attendance Report Table</h3>
+              <p style="font-size:0.775rem; color:#94a3b8; margin:0;">Robotics Academy • Daily Session Roll Table</p>
+            </div>
+          </div>
+
+          <!-- Report Controls / Day Filter Bar -->
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <select id="reportBranchSelector" class="form-select"
+              style="font-weight:700; font-size:0.8rem; padding:0.35rem 0.65rem; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; min-width:145px;"
+              title="Filter Report by Branch">
+              <option value="all">🏢 All Branches</option>
+            </select>
+            <select id="reportDaySelector" class="form-select"
+              style="font-weight:700; font-size:0.8rem; padding:0.35rem 0.65rem; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px;">
+              <option value="Saturday">📅 Saturday Class Report</option>
+              <option value="Sunday">📅 Sunday Class Report</option>
+              <option value="all">📋 All Enrolled Students</option>
+            </select>
+            <input type="date" id="reportDateSelector" class="form-input"
+              style="font-size:0.8rem; padding:0.35rem 0.55rem; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; width:135px;" />
+            <button type="button" id="closeReportModalBtn" class="modal-close"
+              style="color:#ffffff; margin-left:0.35rem;">&times;</button>
+          </div>
+        </div>
+
+        <div class="modal-body"
+          style="padding:1.25rem 1.5rem; max-height:75vh; overflow-y:auto; overflow-x:auto; background:#f8fafc;">
+          <!-- Printable Report Container -->
+          <div id="printableReportContainer">
+            <!-- Dynamic Report Content Inserted by JavaScript -->
+          </div>
+        </div>
+
+        <div class="modal-footer"
+          style="display:flex; justify-content:space-between; align-items:center; padding:1rem 1.5rem; background:#ffffff; border-top:1px solid #e2e8f0; flex-wrap:wrap; gap:0.75rem;">
+          <div style="display:flex; gap:0.5rem;">
+            <button type="button" id="broadcastReportTelegramBtn" class="btn btn-success"
+              style="font-size:0.85rem; background:#10b981; border:none; display:flex; align-items:center; gap:0.4rem;">
+              Send Telegram Report
+            </button>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button type="button" id="cancelReportModalBtn" class="btn btn-secondary">Close</button>
+            <button type="button" id="downloadReportPdfBtn" class="btn btn-primary"
+              style="background:linear-gradient(135deg, #2563eb, #1d4ed8); font-size:0.875rem; display:flex; align-items:center; gap:0.45rem;">
+              <svg style="width:16px; height:16px; fill:currentColor;" viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />
+              </svg>
+              Save as PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYSTEM LOGIN OVERLAY (ADMIN / USER) -->
+    <div id="loginOverlay" class="modal-overlay active"
+      style="z-index:9999; background:rgba(15,23,42,0.85); backdrop-filter:blur(10px);">
+      <div class="modal-card"
+        style="max-width:440px; border-radius:16px; box-shadow:0 25px 60px rgba(0,0,0,0.4); overflow:hidden;">
+        <div class="modal-header"
+          style="background:linear-gradient(135deg, #1e293b, #0f172a); text-align:center; padding:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1);">
+          <div
+            style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
+            <img src="assets/robot_badge.png"
+              style="width:84px; height:84px; border-radius:18px; object-fit:contain; box-shadow:0 8px 25px rgba(220,38,38,0.4); margin-bottom:0.25rem;"
+              alt="Robotics Logo" onerror="this.src='assets/robot_logo.svg'" />
+            <h3 style="font-size:1.3rem; color:#ffffff; margin:0; font-family:'Outfit', sans-serif;">ROBOTICS™
+              Attendance System</h3>
+          </div>
+          <p style="font-size:0.8rem; color:#94a3b8; margin:0;">Please sign in to access attendance terminal</p>
+        </div>
+
+        <form id="loginForm" autocomplete="off" style="padding:1.5rem;" onsubmit="app.handleLoginSubmit(event)">
+          <!-- Role Switcher Tabs -->
+          <div style="display:flex; background:#f1f5f9; padding:0.25rem; border-radius:10px; margin-bottom:0.6rem;">
+            <button type="button" id="roleBtnAdmin" class="btn"
+              style="flex:1; border:none; padding:0.45rem; border-radius:8px; font-weight:700; font-size:0.825rem; background:#ffffff; color:#0f172a; box-shadow:0 2px 5px rgba(0,0,0,0.06);"
+              onclick="app.setLoginRole('admin')">Admin Login</button>
+            <button type="button" id="roleBtnUser" class="btn"
+              style="flex:1; border:none; padding:0.45rem; border-radius:8px; font-weight:600; font-size:0.825rem; background:transparent; color:#64748b;"
+              onclick="app.setLoginRole('user')">User Login (Read-Only)</button>
+          </div>
+          <div id="loginRoleHint"
+            style="font-size:0.75rem; color:#64748b; margin-bottom:1.1rem; text-align:center; font-weight:500;">
+            Admin access allows attendance check-in, student registration, and database management.
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label id="loginUserLabel"
+              style="display:block; font-weight:600; font-size:0.825rem; color:var(--text-primary); margin-bottom:0.35rem;">Username
+              *</label>
+            <input type="text" id="loginUsername" class="form-input" autocomplete="off" style="font-size:0.9rem;"
+              placeholder="Enter username..." required />
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label style="font-weight:600; font-size:0.825rem; color:var(--text-primary);">Password *</label>
+            <input type="password" id="loginPassword" class="form-input" autocomplete="new-password"
+              style="font-size:0.9rem;" placeholder="Enter password..." required />
+          </div>
+
+          <div id="loginErrorMsg"
+            style="display:none; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; padding:0.6rem 0.85rem; border-radius:8px; font-size:0.8rem; margin-bottom:1rem; font-weight:600;">
+          </div>
+
+          <button type="submit" class="btn btn-primary"
+            style="width:100%; padding:0.75rem; font-size:0.95rem; font-weight:700; border-radius:10px; background:linear-gradient(135deg, #2563eb, #1d4ed8);">
+            Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- RESTORE DELETED STUDENTS TRASH BIN MODAL -->
+    <div id="restoreModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:620px;">
+        <div class="modal-header" style="background:#e11d48;">
+          <h3 style="font-size:1.1rem; color:#ffffff; display:flex; align-items:center; gap:0.5rem;">
+            Restore Deleted Students
+          </h3>
+          <button id="closeRestoreModalBtn" class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;"
+            onclick="document.getElementById('restoreModal').classList.remove('active');">✕</button>
+        </div>
+
+        <div class="modal-body" style="max-height:400px; overflow-y:auto; padding:1.25rem;">
+          <div id="restoreListContainer">
+            <!-- Dynamically rendered list of deleted students -->
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" class="btn btn-danger" onclick="app.clearTrashBin()">Clear Trash Bin</button>
+          <div style="display:flex; gap:0.5rem;">
+            <button type="button" class="btn btn-success" onclick="app.restoreAllDeletedStudents()">⚡ Restore All
+              Roster</button>
+            <button type="button" class="btn btn-secondary"
+              onclick="document.getElementById('restoreModal').classList.remove('active');">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATABASE INSPECTOR MODAL -->
+    <div id="databaseInspectorModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:850px; border-radius:16px;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="margin:0; font-size:1.15rem; color:#ffffff;">IndexedDB Database Viewer</h3>
+            <p style="margin:0.2rem 0 0 0; font-size:0.75rem; color:#94a3b8;">RoboticsAttendanceDB • Live Storage Store
+              Tables</p>
+          </div>
+          <button class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;"
+            onclick="document.getElementById('databaseInspectorModal').classList.remove('active');">✕</button>
+        </div>
+
+        <div class="modal-body" style="padding:1.25rem;">
+          <div
+            style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid var(--border-color); padding-bottom:0.75rem;">
+            <button class="btn btn-primary" id="dbTabStudentsBtn"
+              onclick="app.switchDbInspectorTab('students')">Students Store</button>
+            <button class="btn btn-secondary" id="dbTabLogsBtn" onclick="app.switchDbInspectorTab('logs')">Attendance
+              Logs Store</button>
+            <button class="btn btn-secondary" id="dbTabSettingsBtn"
+              onclick="app.switchDbInspectorTab('settings')">Settings Store</button>
+          </div>
+
+          <div id="dbInspectorContent" style="max-height:420px; overflow-y:auto;">
+            <!-- Dynamically populated database store content -->
+          </div>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+          <button type="button" class="btn btn-secondary" onclick="app.exportDataBackup()">Export JSON Backup</button>
+          <button type="button" class="btn btn-secondary"
+            onclick="document.getElementById('databaseInspectorModal').classList.remove('active');">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE NEW ACADEMIC TERM MODAL -->
+    <div id="newTermModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:500px;">
+        <div class="modal-header" style="background:var(--accent-blue);">
+          <h3 style="font-size:1.1rem; color:#ffffff; display:flex; align-items:center; gap:0.5rem;">
+            Create New Academic Term
+          </h3>
+          <button id="closeNewTermModalBtn" class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;"
+            onclick="document.getElementById('newTermModal').classList.remove('active');">✕</button>
+        </div>
+
+        <form id="newTermForm" onsubmit="app.handleCreateNewTerm(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="termNameInput">Academic Term Name *</label>
+              <input type="text" id="termNameInput" class="form-input" placeholder="e.g. Term 1 (2026 - AI & Robotics)"
+                required />
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="termStartDateInput">Start Date *</label>
+                <input type="date" id="termStartDateInput" class="form-input" required />
+              </div>
+              <div class="form-group">
+                <label for="termEndDateInput">End Date *</label>
+                <input type="date" id="termEndDateInput" class="form-input" required />
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="termTotalWeeksInput">Total Class Weeks *</label>
+                <input type="number" id="termTotalWeeksInput" class="form-input" value="11" min="1" max="52" required />
+              </div>
+              <div class="form-group">
+                <label for="termGraceMinsInput">Late Grace Period (Mins)</label>
+                <input type="number" id="termGraceMinsInput" class="form-input" value="15" min="0" max="60" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:0.75rem;">
+            <button type="button" class="btn btn-secondary"
+              onclick="document.getElementById('newTermModal').classList.remove('active');">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save & Activate Term</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- CREATE NEW EXAM MODAL -->
+    <div id="newExamModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:500px;">
+        <div class="modal-header" style="background:var(--accent-blue);">
+          <h3 style="font-size:1.1rem; color:#ffffff; display:flex; align-items:center; gap:0.5rem;">
+            Create New Examination / Assessment
+          </h3>
+          <button class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:transparent; border:none;"
+            onclick="document.getElementById('newExamModal').classList.remove('active');">✕</button>
+        </div>
+
+        <form id="newExamForm" onsubmit="app.handleCreateNewExam(event)">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="examNameInput">Exam Title / Assessment Name *</label>
+              <input type="text" id="examNameInput" class="form-input"
+                placeholder="e.g. Mid-Term Robotics Practical Exam" required />
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="examClassInput">Target Class *</label>
+                <select id="examClassInput" class="form-select" required style="font-weight:600;">
+                  <option value="all">All Classes</option>
+                  <option value="AI">AI</option>
+                  <option value="3D">3D</option>
+                  <option value="HTML">HTML</option>
+                  <option value="Python">Python</option>
+                  <option value="Level 1">Level 1</option>
+                  <option value="Level 2">Level 2</option>
+                  <option value="Level 3">Level 3</option>
+                  <option value="Level 4">Level 4</option>
+                  <option value="Level 5">Level 5</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="examDateInput">Exam Date *</label>
+                <input type="date" id="examDateInput" class="form-input" required />
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.75rem;">
+              <div class="form-group">
+                <label for="examMaxScoreInput">Max Score (Points) *</label>
+                <input type="number" id="examMaxScoreInput" class="form-input" value="100" min="10" max="500"
+                  required />
+              </div>
+              <div class="form-group">
+                <label for="examTypeInput">Assessment Type *</label>
+                <select id="examTypeInput" class="form-select" required style="font-weight:600;">
+                  <option value="Practical Project">Practical Project</option>
+                  <option value="Theory Exam">Theory Exam</option>
+                  <option value="Coding Quiz">Coding Quiz</option>
+                  <option value="Final Evaluation">Final Evaluation</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:0.75rem;">
+            <button type="button" class="btn btn-secondary"
+              onclick="document.getElementById('newExamModal').classList.remove('active');">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create & Save Exam</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- REGISTER NEW ADMIN MODAL -->
+    <div id="newAdminModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:480px; border-radius:16px; overflow:hidden;">
+        <div class="modal-header"
+          style="background:linear-gradient(135deg, #1e293b, #0f172a); color:#ffffff; padding:1.25rem 1.5rem;">
+          <div>
+            <h3
+              style="margin:0; font-size:1.15rem; color:#ffffff; font-weight:700; display:flex; align-items:center; gap:0.5rem;">
+              <span>🛡️</span> Register New Administrator
+            </h3>
+            <p style="margin:0.25rem 0 0 0; font-size:0.775rem; color:#94a3b8;">
+              Create an administrative account with system credentials.
+            </p>
+          </div>
+          <button type="button" class="btn btn-secondary"
+            style="padding:0.25rem 0.5rem; color:#ffffff; background:rgba(255,255,255,0.1); border:none;"
+            onclick="document.getElementById('newAdminModal').classList.remove('active');">✕</button>
+        </div>
+
+        <form id="newAdminForm" onsubmit="app.handleCreateNewAdmin(event)">
+          <div class="modal-body" style="padding:1.5rem;">
+            <div class="form-group" style="margin-bottom:0.9rem;">
+              <label for="newAdminFullName">Admin Full Name *</label>
+              <input type="text" id="newAdminFullName" class="form-input" placeholder="e.g. Chann Sophea" required
+                oninput="app.autoGenAdminUsername(this.value)" />
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.9rem;">
+              <div class="form-group">
+                <label for="newAdminUsername">Login Username *</label>
+                <input type="text" id="newAdminUsername" class="form-input" placeholder="e.g. sophea" required />
+              </div>
+              <div class="form-group">
+                <label for="newAdminRole">Admin Role *</label>
+                <select id="newAdminRole" class="form-select" style="font-weight:600;" required>
+                  <option value="Head Administrator">Head Administrator</option>
+                  <option value="System Administrator">System Administrator</option>
+                  <option value="Lead Instructor">Lead Instructor</option>
+                  <option value="School Director">School Director</option>
+                  <option value="Robotics Teacher">Robotics Teacher</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.9rem;">
+              <div class="form-group">
+                <label for="newAdminPassword">Password *</label>
+                <input type="password" id="newAdminPassword" class="form-input" value="admin123" required />
+              </div>
+              <div class="form-group">
+                <label for="newAdminPin">PIN Code</label>
+                <input type="text" id="newAdminPin" class="form-input" value="1234" maxlength="6" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="newAdminPhotoUrl">Avatar Photo (URL or Preset)</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="newAdminPhotoUrl" class="form-input" placeholder="assets/favicon.svg"
+                  value="assets/favicon.svg" />
+                <select class="form-select" style="max-width:140px; font-size:0.775rem;"
+                  onchange="document.getElementById('newAdminPhotoUrl').value = this.value;">
+                  <option value="assets/favicon.svg">Default</option>
+                  <option value="assets/sovanlyseth.jpg">PHONN SOVANLYSETH</option>
+                  <option value="assets/socheata.jpg">VIT SOCHEATA</option>
+                  <option value="assets/romdoul.jpg">HENGKOENG ROMDOUL</option>
+                  <option value="assets/bunchhay.jpg">TAN BUNCHHAY</option>
+                  <option value="assets/reach.jpg">SENG SOVANNAREACH</option>
+                  <option value="assets/leab.jpg">MENG KIMLEAP</option>
+                  <option value="assets/lun_raksa.jpg">LUN RAKSA</option>
+                  <option value="assets/rom_pheaktra.jpg">ROM PHEAKTRA</option>
+                  <option value="assets/seang_navorn.jpg">SEANG NAVORN</option>
+                  <option value="assets/ny_sokchanthyphynit.jpg">NY SOKCHANTHYPHYNIT</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer"
+            style="display:flex; justify-content:flex-end; gap:0.75rem; padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary"
+              onclick="document.getElementById('newAdminModal').classList.remove('active');">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Admin Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ADMIN PROFILE & SYSTEM SETTINGS MODAL -->
+    <div id="adminProfileModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:680px; padding:0; overflow:hidden; border-radius:16px;">
+
+        <!-- Header Banner -->
+        <div class="admin-profile-banner">
+          <div class="admin-avatar-wrapper">
+            <img id="modalAdminAvatarPreview" class="admin-avatar-lg" src="assets/lun_raksa.jpg" alt="Admin Photo"
+              style="cursor:pointer;" onclick="document.getElementById('modalAdminAvatarInput').click();"
+              title="Click to change photo" onerror="this.src='assets/favicon.svg'" />
+            <input type="file" id="modalAdminAvatarInput" accept="image/*" style="display:none;"
+              onchange="app.handleAdminAvatarFileUpload(event)" />
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <h3 id="modalAdminNameHeader" style="margin:0; font-size:1.35rem; font-weight:700; color:#ffffff;">Lun
+                RakSa</h3>
+              <span class="pro-stat-badge positive" style="font-size:0.7rem; padding:0.15rem 0.5rem;">ACTIVE
+                SESSION</span>
+            </div>
+            <p id="modalAdminRoleHeader"
+              style="margin:0.2rem 0 0 0; font-size:0.85rem; color:#94a3b8; font-weight:500;">Head Administrator</p>
+          </div>
+          <button type="button" class="btn btn-secondary"
+            style="padding:0.3rem 0.6rem; color:#ffffff; background:rgba(255,255,255,0.1); border:none; border-radius:8px;"
+            onclick="document.getElementById('adminProfileModal').classList.remove('active');">✕</button>
+        </div>
+
+        <!-- Tab Navigation Bar -->
+        <div class="profile-nav-tabs">
+          <button type="button" class="profile-tab-btn active" data-profile-tab="info"
+            onclick="app.switchAdminProfileTab('info')">
+            Profile Info
+          </button>
+          <button type="button" class="profile-tab-btn" data-profile-tab="avatar"
+            onclick="app.switchAdminProfileTab('avatar')">
+            Photo & Avatar
+          </button>
+          <button type="button" class="profile-tab-btn" data-profile-tab="security"
+            onclick="app.switchAdminProfileTab('security')">
+            Security & Login
+          </button>
+          <button type="button" class="profile-tab-btn" data-profile-tab="preferences"
+            onclick="app.switchAdminProfileTab('preferences')">
+            Preferences & Tools
+          </button>
+        </div>
+
+        <!-- Modal Body Content -->
+        <form id="adminProfileForm" onsubmit="app.handleSaveAdminProfile(event)">
+          <div class="modal-body" style="padding:1.25rem; max-height:460px; overflow-y:auto;">
+
+            <!-- TAB 1: PROFILE INFO -->
+            <div id="profileTabInfo" class="profile-tab-content active">
+
+              <!-- Direct Image / Avatar Editor Banner in Tab 1 -->
+              <div
+                style="display:flex; align-items:center; gap:1.15rem; padding:0.9rem 1.15rem; background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border:1px solid #e2e8f0; border-radius:12px; margin-bottom:1.1rem;">
+                <div style="position:relative; width:58px; height:58px; flex-shrink:0;">
+                  <img id="tab1AvatarThumb" src="assets/lun_raksa.jpg" alt="Profile Picture"
+                    style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid var(--accent-blue); box-shadow:0 2px 8px rgba(37,99,235,0.25); cursor:pointer;"
+                    onclick="document.getElementById('modalAdminAvatarInput').click();" title="Click to change photo"
+                    onerror="this.src='assets/favicon.svg'" />
+                </div>
+                <div style="flex:1;">
+                  <strong style="display:block; font-size:0.875rem; color:var(--text-primary);">Profile Picture &
+                    Identity</strong>
+                  <span style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.45rem;">Update
+                    your name, avatar picture, contact, and administrative credentials.</span>
+                  <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <button type="button" class="btn btn-primary"
+                      style="padding:0.3rem 0.65rem; font-size:0.75rem; display:flex; align-items:center; gap:0.3rem;"
+                      onclick="document.getElementById('modalAdminAvatarInput').click();">
+                      Upload Image
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                      style="padding:0.3rem 0.65rem; font-size:0.75rem; display:flex; align-items:center; gap:0.3rem;"
+                      onclick="app.switchAdminProfileTab('avatar');">
+                      Avatar Gallery & URL
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
+                <div class="form-group">
+                  <label for="adminProfileName">Admin Full Name *</label>
+                  <input type="text" id="adminProfileName" class="form-input" placeholder="e.g. LUN RAKSA" required
+                    oninput="app.syncAdminNamePreview(this.value)" />
+                </div>
+                <div class="form-group">
+                  <label for="adminProfileRole">Title / Role *</label>
+                  <select id="adminProfileRole" class="form-select" style="font-weight:600;"
+                    onchange="app.syncAdminRolePreview(this.value)">
+                    <option value="Head Administrator">Head Administrator</option>
+                    <option value="System Administrator">System Administrator</option>
+                    <option value="Lead Instructor">Lead Instructor</option>
+                    <option value="School Director">School Director</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-top:0.85rem;">
+                <div class="form-group">
+                  <label for="adminProfileEmail">Email Address</label>
+                  <input type="email" id="adminProfileEmail" class="form-input" placeholder="raksa.lun@robotics.edu" />
+                </div>
+                <div class="form-group">
+                  <label for="adminProfilePhone">Contact Phone</label>
+                  <input type="text" id="adminProfilePhone" class="form-input" placeholder="+855 12 888 999" />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top:0.85rem;">
+                <label for="adminProfileBio">Department / Bio Note</label>
+                <input type="text" id="adminProfileBio" class="form-input"
+                  placeholder="Robotics & AI Department Head" />
+              </div>
+            </div>
+
+            <!-- TAB 2: PHOTO & AVATAR GALLERY -->
+            <div id="profileTabAvatar" class="profile-tab-content" style="display:none;">
+              <div style="margin-bottom:1rem;">
+                <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:0.4rem;">1. Upload Custom
+                  Image (Local File)</label>
+                <div style="display:flex; gap:0.75rem; align-items:center;">
+                  <button type="button" class="btn btn-secondary"
+                    onclick="document.getElementById('modalAdminAvatarInput').click();"
+                    style="display:flex; align-items:center; gap:0.4rem;">
+                    Choose Photo File...
+                  </button>
+                  <span style="font-size:0.775rem; color:var(--text-muted);">Supports PNG, JPG, WEBP (Auto
+                    compressed)</span>
+                </div>
+              </div>
+
+              <div style="margin-bottom:1rem;">
+                <label for="adminProfilePhotoUrl"
+                  style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:0.4rem;">2. Or Image URL
+                  Link</label>
+                <input type="text" id="adminProfilePhotoUrl" class="form-input"
+                  placeholder="https://example.com/photo.jpg" oninput="app.updateAdminAvatarFromUrl(this.value)" />
+              </div>
+
+              <div>
+                <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:0.4rem;">3. Or Choose
+                  from Preset Staff Avatars</label>
+                <div class="avatar-preset-grid">
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/sovanlyseth.jpg', this)">
+                    <img src="assets/sovanlyseth.jpg" alt="PHONN SOVANLYSETH" />
+                    <span>PHONN SOVANLYSETH</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/socheata.jpg', this)">
+                    <img src="assets/socheata.jpg" alt="VIT SOCHEATA" />
+                    <span>VIT SOCHEATA</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/romdoul.jpg', this)">
+                    <img src="assets/romdoul.jpg" alt="HENGKOENG ROMDOUL" />
+                    <span>HENGKOENG ROMDOUL</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/bunchhay.jpg', this)">
+                    <img src="assets/bunchhay.jpg" alt="TAN BUNCHHAY" />
+                    <span>TAN BUNCHHAY</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/reach.jpg', this)">
+                    <img src="assets/reach.jpg" alt="SENG SOVANNAREACH" />
+                    <span>SENG SOVANNAREACH</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/leab.jpg', this)">
+                    <img src="assets/leab.jpg" alt="MENG KIMLEAP" />
+                    <span>MENG KIMLEAP</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/lun_raksa.jpg', this)">
+                    <img src="assets/lun_raksa.jpg" alt="LUN RAKSA" />
+                    <span>LUN RAKSA</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/rom_pheaktra.jpg', this)">
+                    <img src="assets/rom_pheaktra.jpg" alt="ROM PHEAKTRA" />
+                    <span>ROM PHEAKTRA</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/seang_navorn.jpg', this)">
+                    <img src="assets/seang_navorn.jpg" alt="SEANG NAVORN" />
+                    <span>SEANG NAVORN</span>
+                  </div>
+                  <div class="avatar-preset-card"
+                    onclick="app.selectPresetAvatar('assets/ny_sokchanthyphynit.jpg', this)">
+                    <img src="assets/ny_sokchanthyphynit.jpg" alt="NY SOKCHANTHYPHYNIT" />
+                    <span>NY SOKCHANTHYPHYNIT</span>
+                  </div>
+                  <div class="avatar-preset-card" onclick="app.selectPresetAvatar('assets/robot_badge.png', this)">
+                    <img src="assets/robot_badge.png" alt="Robotics Logo" />
+                    <span>Robotics Logo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: SECURITY & PASSWORD -->
+            <div id="profileTabSecurity" class="profile-tab-content" style="display:none;">
+              <div class="pro-card"
+                style="background:#f8fafc; border:1px solid #e2e8f0; margin-bottom:1rem; padding:1rem;">
+                <h4
+                  style="margin:0 0 0.5rem 0; font-size:0.925rem; color:var(--text-primary); display:flex; align-items:center; gap:0.4rem;">
+                  Admin Account Security Credentials
+                </h4>
+                <p style="margin:0; font-size:0.775rem; color:var(--text-secondary);">
+                  Update your system password used for login. Minimum 4 characters required.
+                </p>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem;">
+                <div class="form-group">
+                  <label for="adminProfilePassword">New Password</label>
+                  <input type="password" id="adminProfilePassword" class="form-input"
+                    placeholder="Enter new password" />
+                </div>
+                <div class="form-group">
+                  <label for="adminProfilePin">Quick Lock PIN Code</label>
+                  <input type="text" id="adminProfilePin" class="form-input" placeholder="e.g. 1234" maxlength="6" />
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 4: PREFERENCES & TOOLS ("do something more") -->
+            <div id="profileTabPreferences" class="profile-tab-content" style="display:none;">
+              <div style="margin-bottom:1.25rem;">
+                <label style="font-weight:600; font-size:0.85rem; display:block; margin-bottom:0.5rem;">System Color
+                  Theme Accent</label>
+                <div class="theme-swatch-grid">
+                  <div class="theme-swatch-card active" data-theme="default"
+                    onclick="app.applyThemeAccent('default', this)">
+                    <div class="theme-preview-dots">
+                      <span class="theme-dot" style="background:#2563eb;"></span>
+                      <span class="theme-dot" style="background:#1e293b;"></span>
+                    </div>
+                    <span style="font-size:0.75rem; font-weight:600;">Robotics Blue</span>
+                  </div>
+                  <div class="theme-swatch-card" data-theme="cyber" onclick="app.applyThemeAccent('cyber', this)">
+                    <div class="theme-preview-dots">
+                      <span class="theme-dot" style="background:#06b6d4;"></span>
+                      <span class="theme-dot" style="background:#0f172a;"></span>
+                    </div>
+                    <span style="font-size:0.75rem; font-weight:600;">Cyber Cyan</span>
+                  </div>
+                  <div class="theme-swatch-card" data-theme="emerald" onclick="app.applyThemeAccent('emerald', this)">
+                    <div class="theme-preview-dots">
+                      <span class="theme-dot" style="background:#10b981;"></span>
+                      <span class="theme-dot" style="background:#064e3b;"></span>
+                    </div>
+                    <span style="font-size:0.75rem; font-weight:600;">Emerald Dark</span>
+                  </div>
+                  <div class="theme-swatch-card" data-theme="purple" onclick="app.applyThemeAccent('purple', this)">
+                    <div class="theme-preview-dots">
+                      <span class="theme-dot" style="background:#8b5cf6;"></span>
+                      <span class="theme-dot" style="background:#2e1065;"></span>
+                    </div>
+                    <span style="font-size:0.75rem; font-weight:600;">Royal Purple</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f8fafc; border-radius:10px; margin-bottom:1rem;">
+                <div>
+                  <strong style="font-size:0.85rem; color:var(--text-primary); display:block;">Attendance Sound
+                    Synthesizer</strong>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">Play audio chimes on successful student ID
+                    check-in</span>
+                </div>
+                <input type="checkbox" id="adminSoundToggle" style="width:20px; height:20px; cursor:pointer;" checked />
+              </div>
+
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem; background:#f8fafc; border-radius:10px; margin-bottom:1rem;">
+                <div>
+                  <strong style="font-size:0.85rem; color:var(--text-primary); display:block;">Telegram Broadcast
+                    Alert</strong>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">Send test notification signal to Telegram
+                    channel</span>
+                </div>
+                <button type="button" class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.775rem;"
+                  onclick="app.testTelegramAlert()">
+                  Test Telegram Alert
+                </button>
+              </div>
+
+              <div
+                style="display:flex; gap:0.75rem; border-top:1px solid #e2e8f0; padding-top:0.75rem; margin-top:0.5rem;">
+                <button type="button" class="btn btn-secondary" style="font-size:0.775rem; flex:1;"
+                  onclick="app.exportAdminProfileBackup()">
+                  Export Profile JSON
+                </button>
+                <button type="button" class="btn btn-danger" style="font-size:0.775rem; flex:1;"
+                  onclick="app.resetAdminProfileDefault()">
+                  Reset Profile
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer"
+            style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border-top:1px solid var(--border-color); padding:0.85rem 1.25rem;">
+            <button type="button" class="btn btn-secondary"
+              style="font-size:0.775rem; display:flex; align-items:center; gap:0.35rem;"
+              onclick="document.getElementById('adminProfileModal').classList.remove('active'); app.openNewAdminModal();">
+              🛡️ + Register New Admin
+            </button>
+            <div style="display:flex; gap:0.75rem;">
+              <button type="button" class="btn btn-secondary"
+                onclick="document.getElementById('adminProfileModal').classList.remove('active');">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Admin Profile</button>
+            </div>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- CREATE NEW BRANCH MODAL (NO ICONS) -->
+    <div id="createBranchModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:440px; border-radius:16px; overflow:hidden;">
+        <div class="modal-header"
+          style="background:linear-gradient(135deg, #1e293b, #0f172a); color:#ffffff; padding:1.2rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h3 style="margin:0; font-size:1.1rem; color:#ffffff; font-weight:700;">Create Branch</h3>
+            <p style="margin:0.25rem 0 0 0; font-size:0.775rem; color:#94a3b8;">
+              Add a new academy branch location to the system.
+            </p>
+          </div>
+          <button type="button" class="btn btn-secondary"
+            style="padding:0.25rem 0.55rem; color:#ffffff; background:rgba(255,255,255,0.1); border:none; border-radius:6px;"
+            onclick="app.closeCreateBranchModal()">✕</button>
+        </div>
+
+        <form id="createBranchForm" onsubmit="app.handleCreateBranchSubmit(event)">
+          <div class="modal-body" style="padding:1.5rem;">
+            <div class="form-group" style="margin-bottom:0.75rem;">
+              <label for="newBranchNameInput"
+                style="font-weight:600; font-size:0.85rem; color:var(--text-primary);">Branch Name *</label>
+              <input type="text" id="newBranchNameInput" class="form-input"
+                placeholder="Enter branch name (e.g. Toul Kork, Sen Sok, Siem Reap)" required
+                style="margin-top:0.4rem;" />
+            </div>
+            <p id="createBranchErrorMsg"
+              style="display:none; color:#ef4444; font-size:0.8rem; margin:0.5rem 0 0 0; font-weight:600;"></p>
+          </div>
+
+          <div class="modal-footer"
+            style="display:flex; justify-content:flex-end; gap:0.75rem; padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary" onclick="app.closeCreateBranchModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Branch</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Layer -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <!-- Mobile Sidebar Backdrop (Fixed Fullscreen Overlay) -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="app.closeMobileSidebar()"></div>
+
+  <!-- Firebase SDK (v10 Compat for Realtime Database, Cloud Firestore & Cloud Storage) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+  <!-- Firebase Configuration & Realtime Client -->
+  <script src="firebase-config.js"></script>
+  <script src="firebase-client.js"></script>
+  <script src="postgres-client.js"></script>
+  <script src="db.js"></script>
+  <script src="storage.js?v=tab_isolation_v2"></script>
+  <script src="app.js?v=tab_isolation_v2"></script>
+</body>
+
+</html>

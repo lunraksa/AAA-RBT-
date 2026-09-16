@@ -1,0 +1,9 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Allows read and write for student photos & assets
+      allow read, write: if true;
+    }
+  }
+}

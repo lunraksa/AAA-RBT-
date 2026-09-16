@@ -1,0 +1,59 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "students": {
+      ".read": true,
+      ".write": true,
+      "$student_id": {
+        ".validate": "newData.hasChildren(['id', 'name', 'class']) && newData.child('id').val() === $student_id && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('class').isString()"
+      }
+    },
+
+    "deleted_students": {
+      ".read": true,
+      ".write": true
+    },
+
+    "attendance_logs": {
+      ".read": true,
+      ".write": true,
+      "$log_id": {
+        ".validate": "newData.hasChildren(['id', 'studentId', 'date', 'status']) && newData.child('studentId').isString() && newData.child('status').isString()"
+      }
+    },
+
+    "matrix_overrides": {
+      ".read": true,
+      ".write": true,
+      "$override_id": {
+        ".validate": "newData.hasChildren(['studentId', 'date', 'status']) && newData.child('studentId').isString() && newData.child('status').isString()"
+      }
+    },
+
+    "admin_logs": {
+      ".read": true,
+      "$log_id": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['id', 'action', 'timestamp', 'adminName']) && newData.child('action').isString() && newData.child('adminName').isString()"
+      }
+    },
+
+    "admin_profile": {
+      ".read": true,
+      ".write": true,
+      ".validate": "newData.hasChildren(['name', 'role']) && newData.child('name').isString()"
+    },
+
+    "active_admin_session": {
+      ".read": true,
+      ".write": true
+    },
+
+    "admins": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

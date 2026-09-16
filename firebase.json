@@ -1,0 +1,46 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "site": "aaa-rbt",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "serviceAccountKey.json",
+      "local_db.json",
+      "auth_users.json",
+      "package.json",
+      "package-lock.json",
+      "server.js",
+      "firebase-admin.js",
+      "sync-*.js",
+      "test-*.js",
+      "cleanup-*.js",
+      "setup-*.js",
+      "update-*.js",
+      "view-*.js",
+      "restore-*.js",
+      "*.rules",
+      "database.rules.json",
+      "*.log",
+      "*.bat",
+      "*.cmd",
+      "*.ps1",
+      "*.sh",
+      "*.exe",
+      "*.sql"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
