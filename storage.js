@@ -260,7 +260,13 @@ class StorageManager {
 
     const cleanUser = String(session.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const cleanName = String(session.name || '').toLowerCase();
-    const matchedAdmin = (cleanUser || cleanName) ? (this.findAdmin(cleanUser) || this.findAdmin(cleanName)) : null;
+    const admins = this.getAdmins();
+    const matchedAdmin = admins.find(a => {
+      const u = String(a.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const n = String(a.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (cleanUser && (u === cleanUser || n === cleanUser)) ||
+             (cleanName && (n === cleanName || u === cleanName || n.includes(cleanName) || cleanName.includes(n)));
+    }) || null;
 
     let photo = session.photo || (matchedAdmin && matchedAdmin.photo) || adminConfig.photo;
     if ((cleanUser === 'bleab' || cleanUser === 'leab' || cleanName.includes('leab') || cleanName.includes('kimleap') || cleanName.includes('meng')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
@@ -401,7 +407,8 @@ class StorageManager {
     const clean = String(query).toLowerCase().replace(/[^a-z0-9]/g, '');
     if (!clean || clean.length < 2) return null;
     const admins = this.getAdmins();
-    const profile = this.getAdminProfile();
+    const settings = this.getSystemSettings();
+    const profile = settings.adminProfile || null;
 
     // 1. Check exact username or full name match
     for (const a of admins) {

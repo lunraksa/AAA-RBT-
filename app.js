@@ -1655,9 +1655,10 @@ class AttendanceApp {
         return;
       }
 
-      // 2. REJECT if password does not match
+      // 2. REJECT if password does not match (accepts password or quick PIN)
       const expectedPassword = (matchedAdmin.password || 'admin123').trim();
-      if (rawPassword !== expectedPassword) {
+      const expectedPin = (matchedAdmin.pin || '1234').trim();
+      if (rawPassword !== expectedPassword && rawPassword !== expectedPin) {
         if (passwordInput) {
           passwordInput.style.border = '2px solid #ef4444';
           passwordInput.focus();
