@@ -1016,8 +1016,9 @@ class StorageManager {
   addLog(logEntry, skipTimeCheck = false) {
     const logs = this.getLogs();
 
-    // Validate Weekend Only & Class Hours (8:30 AM to 5:00 PM) unless skipTimeCheck or adminOverride is true
-    if (!skipTimeCheck && !logEntry.adminOverride) {
+    // Validate Weekend Only & Class Hours (8:30 AM to 5:00 PM) unless skipTimeCheck is true
+    if (!skipTimeCheck) {
+
       const logTime = logEntry.timestamp ? new Date(logEntry.timestamp) : new Date();
       const dayOfWeek = logTime.getDay(); // 0 = Sunday, 6 = Saturday
       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
