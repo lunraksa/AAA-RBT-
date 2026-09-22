@@ -1012,13 +1012,27 @@ class StorageManager {
     }
   }
 
-  // Add Attendance Log (Enforces 8:30 AM - 5:00 PM Class Hours & 1 Check-in/day)
+  // Add Attendance Log (Enforces Saturday & Sunday Only + 8:30 AM - 5:00 PM Class Hours & 1 Check-in/day)
   addLog(logEntry, skipTimeCheck = false) {
     const logs = this.getLogs();
 
-    // Validate Class Hours (8:30 AM to 5:00 PM) unless skipTimeCheck is true
-    if (!skipTimeCheck) {
+    // Validate Weekend Only & Class Hours (8:30 AM to 5:00 PM) unless skipTimeCheck or adminOverride is true
+    if (!skipTimeCheck && !logEntry.adminOverride) {
       const logTime = logEntry.timestamp ? new Date(logEntry.timestamp) : new Date();
+      const dayOfWeek = logTime.getDay(); // 0 = Sunday, 6 = Saturday
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      // Strict Saturday & Sunday Only Rule
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        return {
+          success: false,
+          reason: `Check-in Locked: Attendance check-in is only permitted on Saturdays and Sundays. Today is ${dayNames[dayOfWeek]}.`,
+          outsideWeekend: true,
+          currentDay: dayNames[dayOfWeek]
+        };
+      }
+
+      // Class Hours: 8:30 AM to 5:00 PM
       const currentMin = logTime.getHours() * 60 + logTime.getMinutes();
       const startMin = 8 * 60 + 30; // 8:30 AM (510 min)
       const endMin = 17 * 60 + 0;   // 5:00 PM (1020 min)
@@ -1031,6 +1045,7 @@ class StorageManager {
         };
       }
     }
+
 
     // Check if student has ALREADY checked in today (Strict 1 Check-In Per Day Rule)
     const alreadyCheckedInToday = logs.find(l =>

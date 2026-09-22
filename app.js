@@ -31,7 +31,9 @@ class AttendanceApp {
     this.updateAdminLogsBadge();
     this.initLiveMatchCard();
     this.updateTelegramPill();
+    this.updateWeekendCheckinUI();
     this.checkAuthSession();
+
 
     // Apply stored theme & preferences
     if (window.storageManager) {
@@ -216,6 +218,88 @@ class AttendanceApp {
       badgeLabel.textContent = val === 'auto' ? 'Auto (Student Branch)' : val;
     }
   }
+
+  // Live Weekend (Saturday & Sunday) Session Indicator & UI State
+  updateWeekendCheckinUI() {
+    const banner = document.getElementById('checkinWeekendBanner');
+    const bannerText = document.getElementById('checkinWeekendBannerText');
+    const overrideContainer = document.getElementById('weekdayOverrideContainer');
+    const overrideCheckbox = document.getElementById('weekdayCheckinOverrideCheckbox');
+    const hoursBadge = document.getElementById('checkinHoursBadge');
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const currentDay = dayNames[dayOfWeek];
+
+    if (banner && bannerText) {
+      banner.style.display = 'flex';
+      if (isWeekend) {
+        banner.style.background = '#f0fdf4';
+        banner.style.color = '#166534';
+        banner.style.border = '1px solid #bbf7d0';
+        bannerText.innerHTML = `
+          <span style="font-size:1.15rem;">🟢</span>
+          <div>
+            <strong>Weekend Session Active:</strong> Today is <u>${currentDay}</u>. Attendance check-in is Open (8:30 AM – 5:00 PM).
+          </div>
+        `;
+        if (overrideContainer) overrideContainer.style.display = 'none';
+      } else {
+        const isOverride = overrideCheckbox && overrideCheckbox.checked;
+        if (isOverride) {
+          banner.style.background = '#eff6ff';
+          banner.style.color = '#1e40af';
+          banner.style.border = '1px solid #bfdbfe';
+          bannerText.innerHTML = `
+            <span style="font-size:1.15rem;">⚡</span>
+            <div>
+              <strong>Admin Override Active:</strong> Weekday check-in temporarily unlocked for <u>${currentDay}</u> (Testing / Special Makeup).
+            </div>
+          `;
+        } else {
+          banner.style.background = '#fef3c7';
+          banner.style.color = '#92400e';
+          banner.style.border = '1px solid #fde047';
+          bannerText.innerHTML = `
+            <span style="font-size:1.15rem;">📅</span>
+            <div>
+              <strong>Weekend Only Check-in:</strong> Today is <u>${currentDay}</u>. Attendance check-in is restricted to <strong>Saturdays & Sundays</strong>.
+            </div>
+          `;
+        }
+
+        // Only show override toggle if user is an Administrator
+        if (overrideContainer) {
+          overrideContainer.style.display = this.isAdmin ? 'flex' : 'none';
+        }
+      }
+    }
+
+    if (hoursBadge) {
+      if (isWeekend) {
+        hoursBadge.style.background = '#dcfce7';
+        hoursBadge.style.color = '#15803d';
+        hoursBadge.innerHTML = `🟢 ${currentDay} Session • 8:30 AM – 5:00 PM`;
+      } else {
+        hoursBadge.style.background = '#fee2e2';
+        hoursBadge.style.color = '#b91c1c';
+        hoursBadge.innerHTML = `📅 Sat & Sun Only • Closed on ${currentDay}`;
+      }
+    }
+  }
+
+  handleWeekdayOverrideToggle() {
+    this.updateWeekendCheckinUI();
+    const isOverride = document.getElementById('weekdayCheckinOverrideCheckbox')?.checked;
+    if (isOverride) {
+      this.showToast('Admin Override Enabled ⚡', 'Weekday check-in is temporarily enabled for testing/makeup.', 'info');
+    } else {
+      this.showToast('Weekend Lock Restored 🔒', 'Check-in is locked to Saturdays & Sundays.', 'info');
+    }
+  }
+
 
   // Handle branch change on the Check-in bar (allows instant dynamic creation of branch)
   handleCheckinBranchChange(selectEl) {
@@ -610,10 +694,24 @@ class AttendanceApp {
     `).join('');
   }
 
-  // Process Student ID / Roll Number Check-in
+  // Process Student ID / Roll Number Check-in (Restricted to Saturdays and Sundays)
   processIdCheckin(inputVal, status = 'present') {
     if (!this.checkAdminPermission('record student check-in')) return;
     if (!window.storageManager) return;
+
+    // Validate Saturday & Sunday Only rule (unless Admin Weekday Override is active)
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const adminOverride = document.getElementById('weekdayCheckinOverrideCheckbox')?.checked || false;
+
+    if (!isWeekend && !adminOverride) {
+      this.playSound('alert');
+      this.showToast('Weekend Only Check-in! 📅', `Check-ins are only permitted on Saturdays & Sundays. Today is ${dayNames[dayOfWeek]}.`, 'warning');
+      return;
+    }
+
     const students = window.storageManager.getStudents();
     const query = inputVal.toLowerCase().trim();
 
@@ -649,7 +747,8 @@ class AttendanceApp {
       date: today,
       status: status,
       confidence: 1.0,
-      mode: `ID Check-in (${branchToRecord})`
+      mode: `ID Check-in (${branchToRecord})`,
+      adminOverride: adminOverride
     };
 
     const res = window.storageManager.addLog(logEntry);
@@ -664,6 +763,9 @@ class AttendanceApp {
       this.renderAttendanceTable();
       this.renderAnalyticsDashboard();
       this.sendTelegramAlert(logEntry);
+    } else if (res.outsideWeekend) {
+      this.playSound('alert');
+      this.showToast('Weekend Only Check-in! 📅', `Check-in is only permitted on Saturdays and Sundays. Today is ${res.currentDay}.`, 'warning');
     } else if (res.outsideHours) {
       this.playSound('alert');
       this.showToast('Check-in Closed!', 'Check-ins are only permitted between 8:30 AM and 5:00 PM.', 'warning');
@@ -704,7 +806,9 @@ class AttendanceApp {
 
     if (tabId === 'checkin') {
       this.startScannerCamera();
+      this.updateWeekendCheckinUI();
     } else {
+
       if (window.faceEngine) window.faceEngine.stopCamera();
       this.cameraActive = false;
     }
@@ -843,9 +947,27 @@ class AttendanceApp {
     }
   }
 
-  // Handle Match from Face Engine
+  // Handle Match from Face Engine (Restricted to Saturdays & Sundays)
   handleFaceMatch(student, confidence) {
     if (!this.checkAdminPermission('record attendance via AI scan')) return;
+
+    // Validate Saturday & Sunday Only rule
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const adminOverride = document.getElementById('weekdayCheckinOverrideCheckbox')?.checked || false;
+
+    if (!isWeekend && !adminOverride) {
+      const nowTs = Date.now();
+      if (nowTs - this.lastScanTime > 3000) {
+        this.playSound('alert');
+        this.showToast('Weekend Only Check-in! 📅', `AI Scan check-in is only permitted on Saturdays & Sundays. Today is ${dayNames[dayOfWeek]}.`, 'warning');
+        this.lastScanTime = nowTs;
+      }
+      return;
+    }
+
     const today = new Date().toISOString().split('T')[0];
     const checkinBranch = document.getElementById('checkinBranchSelect')?.value;
     const branchToRecord = (checkinBranch && checkinBranch !== 'auto' && checkinBranch !== '__new__')
@@ -862,7 +984,8 @@ class AttendanceApp {
       date: today,
       status: 'present',
       confidence: confidence,
-      mode: `AI Face Scan (${branchToRecord})`
+      mode: `AI Face Scan (${branchToRecord})`,
+      adminOverride: adminOverride
     };
 
     const res = window.storageManager.addLog(logEntry);
@@ -877,20 +1000,27 @@ class AttendanceApp {
       this.renderAttendanceTable();
       this.renderAnalyticsDashboard();
       this.sendTelegramAlert(logEntry);
+    } else if (res.outsideWeekend) {
+      const nowTs = Date.now();
+      if (nowTs - this.lastScanTime > 3000) {
+        this.playSound('alert');
+        this.showToast('Weekend Only Check-in! 📅', `Check-ins are only permitted on Saturday & Sunday. Today is ${res.currentDay}.`, 'warning');
+        this.lastScanTime = nowTs;
+      }
     } else if (res.outsideHours) {
-      const now = Date.now();
-      if (now - this.lastScanTime > 3000) {
+      const nowTs = Date.now();
+      if (nowTs - this.lastScanTime > 3000) {
         this.playSound('alert');
         this.showToast('Check-in Closed!', 'Check-ins are only permitted between 8:30 AM and 5:00 PM.', 'warning');
-        this.lastScanTime = now;
+        this.lastScanTime = nowTs;
       }
     } else {
       // Already checked in today alert
-      const now = Date.now();
-      if (now - this.lastScanTime > 3000) {
+      const nowTs = Date.now();
+      if (nowTs - this.lastScanTime > 3000) {
         this.playSound('alert');
         this.showToast('Already Checked In Today!', `${student.name} (${student.id}) has already checked in today!`, 'warning');
-        this.lastScanTime = now;
+        this.lastScanTime = nowTs;
       }
       this.updateLiveMatchCard(student, confidence);
     }
@@ -1785,7 +1915,9 @@ class AttendanceApp {
     this.render11WeekMatrix();
     this.renderAnalyticsDashboard();
     this.renderRecentFeed();
+    this.updateWeekendCheckinUI();
   }
+
 
   checkAdminPermission(actionName = 'perform this action') {
     if (this.isAdmin) {

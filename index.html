@@ -229,20 +229,33 @@
               <div class="pro-card">
                 <div class="pro-card-header">
                   <h3>Fast Student ID Check in</h3>
-                  <span
-                    style="font-size:0.75rem; color:var(--accent-blue); font-weight:700; background:#e0f2fe; padding:0.2rem 0.6rem; border-radius:12px;">⏰
-                    Class Hours: 8:30 AM – 5:00 PM</span>
+                  <span id="checkinHoursBadge"
+                    style="font-size:0.75rem; color:var(--accent-blue); font-weight:700; background:#e0f2fe; padding:0.2rem 0.6rem; border-radius:12px;">📅
+                    Saturday & Sunday Only • ⏰ 8:30 AM – 5:00 PM</span>
+                </div>
+
+                <!-- Weekend Check-in Session Banner (Live Sat/Sun Validation) -->
+                <div id="checkinWeekendBanner"
+                  style="display:none; padding:0.75rem 1rem; border-radius:10px; margin:0.85rem 1.25rem 0.25rem 1.25rem; font-size:0.825rem; font-weight:600; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                  <div style="display:flex; align-items:center; gap:0.5rem;" id="checkinWeekendBannerText"></div>
+                  <div id="weekdayOverrideContainer" style="display:none; align-items:center; gap:0.4rem;">
+                    <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.75rem; font-weight:700; cursor:pointer; color:#78350f; background:rgba(255,255,255,0.85); padding:0.25rem 0.6rem; border-radius:6px; border:1px solid #fde047;">
+                      <input type="checkbox" id="weekdayCheckinOverrideCheckbox" style="cursor:pointer;" onchange="app.handleWeekdayOverrideToggle()">
+                      <span>Admin Weekday Override</span>
+                    </label>
+                  </div>
                 </div>
 
                 <!-- Read-Only Notice Banner (Shown when User logs in) -->
                 <div id="checkinReadOnlyBanner"
                   style="display:none; background:#fef3c7; color:#92400e; border:1px solid #fde047; padding:0.75rem 1rem; border-radius:10px; margin:0.85rem 1.25rem 0.25rem 1.25rem; font-size:0.825rem; font-weight:600; align-items:center; gap:0.5rem;">
-                  <span style="font-size:1.1rem;"></span>
+                  <span style="font-size:1.1rem;">🔒</span>
                   <div>
                     <strong>Read-Only Mode:</strong> Attendance check-in and data mutations are locked for User
                     accounts. Sign in as an Administrator to record check-ins.
                   </div>
                 </div>
+
 
                 <div class="id-checkin-box">
                   <div style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem; font-weight:600;">
