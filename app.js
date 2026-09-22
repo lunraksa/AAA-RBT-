@@ -1699,6 +1699,9 @@ class AttendanceApp {
       if ((cleanUser === 'sovanlyseth' || (displayName && (displayName.toLowerCase().includes('sovanlyseth') || displayName.toLowerCase().includes('lyseth') || displayName.toLowerCase().includes('phonn')))) && (!photoUrl || photoUrl.includes('favicon') || photoUrl.includes('robot'))) {
         photoUrl = 'assets/sovanlyseth.jpg';
       }
+      if ((cleanUser === 'kimhuoy' || cleanUser === 'choukimhuoy' || (displayName && (displayName.toLowerCase().includes('kimhuoy') || displayName.toLowerCase().includes('huoy') || displayName.toLowerCase().includes('chou')))) && (!photoUrl || photoUrl.includes('favicon') || photoUrl.includes('robot'))) {
+        photoUrl = 'assets/chou_kimhuoy.jpg';
+      }
       adminRole = matchedAdmin.role || 'Head Administrator';
     }
 
@@ -1776,6 +1779,11 @@ class AttendanceApp {
     if (session.username === 'sovanlyseth' || (session.name && (session.name.toLowerCase().includes('sovanlyseth') || session.name.toLowerCase().includes('lyseth') || session.name.toLowerCase().includes('phonn')))) {
       if (!session.photo || session.photo.includes('favicon') || session.photo.includes('robot')) {
         session.photo = 'assets/sovanlyseth.jpg';
+      }
+    }
+    if (session.username === 'kimhuoy' || session.username === 'choukimhuoy' || (session.name && (session.name.toLowerCase().includes('kimhuoy') || session.name.toLowerCase().includes('huoy') || session.name.toLowerCase().includes('chou')))) {
+      if (!session.photo || session.photo.includes('favicon') || session.photo.includes('robot')) {
+        session.photo = 'assets/chou_kimhuoy.jpg';
       }
     }
     if (topAvatar && session.photo) topAvatar.src = session.photo;

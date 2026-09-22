@@ -153,6 +153,18 @@ const DEFAULT_ADMINS = [
     password: 'admin123',
     pin: '1234',
     isAdmin: true
+  },
+  {
+    username: 'kimhuoy',
+    name: 'CHOU KIMHUOY',
+    role: 'Administrator & Robotics Lead',
+    photo: 'assets/chou_kimhuoy.jpg',
+    email: 'kimhuoy.chou@robotics.edu',
+    phone: '+855 12 777 888',
+    bio: 'Robotics & STEM Department Administrator',
+    password: 'admin123',
+    pin: '1234',
+    isAdmin: true
   }
 ];
 
@@ -167,7 +179,9 @@ const KNOWN_ADMIN_NAMES = {
   'bunchhay': 'TAN BUNCHHAY',
   'romdoul': 'HENGKOENG ROMDOUL',
   'socheata': 'VIT SOCHEATA',
-  'sovanlyseth': 'PHONN SOVANLYSETH'
+  'sovanlyseth': 'PHONN SOVANLYSETH',
+  'kimhuoy': 'CHOU KIMHUOY',
+  'choukimhuoy': 'CHOU KIMHUOY'
 };
 
 // 5 Recognized Branches across AAA Robotics Academy
@@ -263,6 +277,9 @@ class StorageManager {
     }
     if ((session.username === 'sovanlyseth' || (session.name && (session.name.toLowerCase().includes('sovanlyseth') || session.name.toLowerCase().includes('lyseth') || session.name.toLowerCase().includes('phonn')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/sovanlyseth.jpg';
+    }
+    if ((session.username === 'kimhuoy' || session.username === 'choukimhuoy' || (session.name && (session.name.toLowerCase().includes('kimhuoy') || session.name.toLowerCase().includes('huoy') || session.name.toLowerCase().includes('chou')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+      photo = 'assets/chou_kimhuoy.jpg';
     }
 
     const rawName = session.name || adminConfig.name || 'LUN RAKSA';
@@ -398,6 +415,8 @@ class StorageManager {
       found = admins.find(a => a.username === 'socheata');
     } else if (clean.includes('sovanlyseth') || clean.includes('lyseth') || clean.includes('seth') || clean.includes('phonn') || clean.includes('phonnsovanlyseth')) {
       found = admins.find(a => a.username === 'sovanlyseth');
+    } else if (clean.includes('kimhuoy') || clean.includes('huoy') || clean.includes('chou') || clean.includes('choukimhuoy')) {
+      found = admins.find(a => a.username === 'kimhuoy' || a.username === 'choukimhuoy');
     }
 
     if (found) {
@@ -563,6 +582,11 @@ class StorageManager {
               activeSession.photo = 'assets/sovanlyseth.jpg';
             }
           }
+          if (u === 'kimhuoy' || u === 'choukimhuoy' || (activeSession.name && (activeSession.name.toLowerCase().includes('kimhuoy') || activeSession.name.toLowerCase().includes('huoy') || activeSession.name.toLowerCase().includes('chou')))) {
+            if (!activeSession.photo || activeSession.photo.includes('favicon') || activeSession.photo.includes('robot')) {
+              activeSession.photo = 'assets/chou_kimhuoy.jpg';
+            }
+          }
           sessionStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify(activeSession));
         }
         try {
@@ -614,6 +638,12 @@ class StorageManager {
               if (!a.photo || a.photo.includes('favicon') || a.photo.includes('robot')) {
                 updated = true;
                 return { ...a, photo: 'assets/sovanlyseth.jpg' };
+              }
+            }
+            if (u === 'kimhuoy' || u === 'choukimhuoy' || (a.name && (a.name.toLowerCase().includes('kimhuoy') || a.name.toLowerCase().includes('huoy') || a.name.toLowerCase().includes('chou')))) {
+              if (!a.photo || a.photo.includes('favicon') || a.photo.includes('robot')) {
+                updated = true;
+                return { ...a, photo: 'assets/chou_kimhuoy.jpg' };
               }
             }
             return a;
@@ -757,6 +787,8 @@ class StorageManager {
                 photo = 'assets/socheata.jpg';
               } else if ((a.username === 'sovanlyseth' || (a.name && (a.name.toLowerCase().includes('sovanlyseth') || a.name.toLowerCase().includes('lyseth') || a.name.toLowerCase().includes('phonn')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
                 photo = 'assets/sovanlyseth.jpg';
+              } else if ((a.username === 'kimhuoy' || a.username === 'choukimhuoy' || (a.name && (a.name.toLowerCase().includes('kimhuoy') || a.name.toLowerCase().includes('huoy') || a.name.toLowerCase().includes('chou')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+                photo = 'assets/chou_kimhuoy.jpg';
               } else if ((!photo || photo.includes('favicon') || photo.includes('robot')) && defaultEntry.photo) {
                 photo = defaultEntry.photo;
               }

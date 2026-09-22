@@ -17,7 +17,9 @@ const NAME_MAP = {
   'lunraksa': 'LUN RAKSA',
   'rompheaktra': 'ROM PHEAKTRA',
   'seangnavorn': 'SEANG NAVORN',
-  'nysokchanthyphynit': 'NY SOKCHANTHYPHYNIT'
+  'nysokchanthyphynit': 'NY SOKCHANTHYPHYNIT',
+  'kimhuoy': 'CHOU KIMHUOY',
+  'choukimhuoy': 'CHOU KIMHUOY'
 };
 
 async function updateFirebaseAdmins() {
