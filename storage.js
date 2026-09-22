@@ -165,6 +165,18 @@ const DEFAULT_ADMINS = [
     password: 'admin123',
     pin: '1234',
     isAdmin: true
+  },
+  {
+    username: 'choukimhuoy',
+    name: 'CHOU KIMHUOY',
+    role: 'Administrator & Robotics Lead',
+    photo: 'assets/chou_kimhuoy.jpg',
+    email: 'kimhuoy.chou@robotics.edu',
+    phone: '+855 12 777 888',
+    bio: 'Robotics & STEM Department Administrator',
+    password: 'admin123',
+    pin: '1234',
+    isAdmin: true
   }
 ];
 
@@ -410,21 +422,24 @@ class StorageManager {
     const settings = this.getSystemSettings();
     const profile = settings.adminProfile || null;
 
-    // 1. Check exact username or full name match
+    // 1. Check exact username, full name, or email match
     for (const a of admins) {
       const u = String(a.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
       const n = String(a.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (u === clean || n === clean) {
+      const em = String(a.email || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (u === clean || n === clean || (em && (em === clean || clean.includes(em)))) {
         if (profile && profile.name && (profile.name.toLowerCase().replace(/[^a-z0-9]/g, '') === n || profile.username === u)) {
-          return { ...a, password: profile.password || a.password || 'admin123' };
+          return { ...a, password: profile.password || a.password || 'admin123', pin: profile.pin || a.pin || '1234' };
         }
-        return a;
+        return { ...a, password: a.password || 'admin123', pin: a.pin || '1234' };
       }
     }
 
     // 2. Specific aliases for the core recognized administrators
     let found = null;
-    if (clean.includes('phynit') || clean.includes('sokchanthy') || clean.includes('chanthy')) {
+    if (clean === 'admin' || clean === 'administrator' || clean === 'manager' || clean === 'root') {
+      found = admins.find(a => a.username === 'kimhuoy' || a.username === 'choukimhuoy') || admins[0];
+    } else if (clean.includes('phynit') || clean.includes('sokchanthy') || clean.includes('chanthy')) {
       found = admins.find(a => a.username === 'nysokchanthyphynit');
     } else if (clean.includes('navorn') || clean.includes('seang')) {
       found = admins.find(a => a.username === 'seangnavorn');
@@ -450,10 +465,11 @@ class StorageManager {
 
     if (found) {
       const n = String(found.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-      if (profile && profile.name && profile.name.toLowerCase().replace(/[^a-z0-9]/g, '') === n) {
-        return { ...found, password: profile.password || found.password || 'admin123' };
+      const u = String(found.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (profile && profile.name && (profile.name.toLowerCase().replace(/[^a-z0-9]/g, '') === n || profile.username === u)) {
+        return { ...found, password: profile.password || found.password || 'admin123', pin: profile.pin || found.pin || '1234' };
       }
-      return found;
+      return { ...found, password: found.password || 'admin123', pin: found.pin || '1234' };
     }
 
     return null;
