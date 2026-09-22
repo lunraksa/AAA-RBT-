@@ -253,58 +253,80 @@ class StorageManager {
     } catch (e) {}
   }
 
-  // Admin Profile & Custom Preferences Management
   getAdminProfile() {
     const session = this.getSession() || {};
     const settings = this.getSystemSettings();
     const adminConfig = settings.adminProfile || {};
 
-    let photo = session.photo || adminConfig.photo;
-    if ((session.username === 'bleab' || session.username === 'leab' || (session.name && (session.name.toLowerCase().includes('leab') || session.name.toLowerCase().includes('kimleap') || session.name.toLowerCase().includes('meng')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    const cleanUser = String(session.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanName = String(session.name || '').toLowerCase();
+    const matchedAdmin = (cleanUser || cleanName) ? (this.findAdmin(cleanUser) || this.findAdmin(cleanName)) : null;
+
+    let photo = session.photo || (matchedAdmin && matchedAdmin.photo) || adminConfig.photo;
+    if ((cleanUser === 'bleab' || cleanUser === 'leab' || cleanName.includes('leab') || cleanName.includes('kimleap') || cleanName.includes('meng')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/leab.jpg';
     }
-    if ((session.username === 'reach' || (session.name && (session.name.toLowerCase().includes('reach') || session.name.toLowerCase().includes('sovannareach')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'reach' || cleanName.includes('reach') || cleanName.includes('sovannareach')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/reach.jpg';
     }
-    if ((session.username === 'bunchhay' || (session.name && (session.name.toLowerCase().includes('bunchhay') || session.name.toLowerCase().includes('tan')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'bunchhay' || cleanName.includes('bunchhay') || cleanName.includes('tan')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/bunchhay.jpg';
     }
-    if ((session.username === 'romdoul' || (session.name && (session.name.toLowerCase().includes('romdoul') || session.name.toLowerCase().includes('hengkoeng')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'romdoul' || cleanName.includes('romdoul') || cleanName.includes('hengkoeng')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/romdoul.jpg';
     }
-    if ((session.username === 'socheata' || (session.name && (session.name.toLowerCase().includes('socheata') || session.name.toLowerCase().includes('vit')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'socheata' || cleanName.includes('socheata') || cleanName.includes('vit')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/socheata.jpg';
     }
-    if ((session.username === 'sovanlyseth' || (session.name && (session.name.toLowerCase().includes('sovanlyseth') || session.name.toLowerCase().includes('lyseth') || session.name.toLowerCase().includes('phonn')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'sovanlyseth' || cleanName.includes('sovanlyseth') || cleanName.includes('lyseth') || cleanName.includes('phonn')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/sovanlyseth.jpg';
     }
-    if ((session.username === 'kimhuoy' || session.username === 'choukimhuoy' || (session.name && (session.name.toLowerCase().includes('kimhuoy') || session.name.toLowerCase().includes('huoy') || session.name.toLowerCase().includes('chou')))) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
+    if ((cleanUser === 'kimhuoy' || cleanUser === 'choukimhuoy' || cleanName.includes('kimhuoy') || cleanName.includes('huoy') || cleanName.includes('chou')) && (!photo || photo.includes('favicon') || photo.includes('robot'))) {
       photo = 'assets/chou_kimhuoy.jpg';
     }
 
-    const rawName = session.name || adminConfig.name || 'LUN RAKSA';
+    const rawName = session.name || (matchedAdmin && matchedAdmin.name) || adminConfig.name || 'LUN RAKSA';
     const mappedName = KNOWN_ADMIN_NAMES[session.username] || (rawName ? rawName.toUpperCase() : 'LUN RAKSA');
 
     return {
       name: mappedName,
-      role: session.role || adminConfig.role || 'Head Administrator',
-      photo: photo || 'assets/lun_raksa.jpg',
-      email: session.email || adminConfig.email || 'raksa.lun@robotics.edu',
-      phone: session.phone || adminConfig.phone || '+855 12 888 999',
-      bio: session.bio || adminConfig.bio || 'Robotics & AI Department Head',
-      password: session.password || adminConfig.password || 'admin123',
-      pin: session.pin || adminConfig.pin || '1234',
+      role: session.role || (matchedAdmin && matchedAdmin.role) || adminConfig.role || 'Head Administrator',
+      photo: photo || (matchedAdmin && matchedAdmin.photo) || 'assets/lun_raksa.jpg',
+      email: session.email || (matchedAdmin && matchedAdmin.email) || adminConfig.email || 'raksa.lun@robotics.edu',
+      phone: session.phone || (matchedAdmin && matchedAdmin.phone) || adminConfig.phone || '+855 12 888 999',
+      bio: session.bio || (matchedAdmin && matchedAdmin.bio) || adminConfig.bio || 'Robotics & AI Department Head',
+      password: session.password || (matchedAdmin && matchedAdmin.password) || adminConfig.password || 'admin123',
+      pin: session.pin || (matchedAdmin && matchedAdmin.pin) || adminConfig.pin || '1234',
       isAdmin: session.isAdmin !== undefined ? session.isAdmin : true
     };
   }
 
   saveAdminProfile(profileData) {
     const session = this.getSession() || {};
+    const cleanUser = String(session.username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cleanName = String(profileData.name || session.name || '').toLowerCase();
+    let defaultPhoto = 'assets/lun_raksa.jpg';
+    if (cleanUser === 'kimhuoy' || cleanUser === 'choukimhuoy' || cleanName.includes('kimhuoy') || cleanName.includes('chou')) {
+      defaultPhoto = 'assets/chou_kimhuoy.jpg';
+    } else if (cleanUser === 'sovanlyseth' || cleanName.includes('sovanlyseth')) {
+      defaultPhoto = 'assets/sovanlyseth.jpg';
+    } else if (cleanUser === 'socheata' || cleanName.includes('socheata')) {
+      defaultPhoto = 'assets/socheata.jpg';
+    } else if (cleanUser === 'romdoul' || cleanName.includes('romdoul')) {
+      defaultPhoto = 'assets/romdoul.jpg';
+    } else if (cleanUser === 'bunchhay' || cleanName.includes('bunchhay')) {
+      defaultPhoto = 'assets/bunchhay.jpg';
+    } else if (cleanUser === 'reach' || cleanName.includes('reach')) {
+      defaultPhoto = 'assets/reach.jpg';
+    } else if (cleanUser === 'leab' || cleanUser === 'bleab' || cleanName.includes('leab')) {
+      defaultPhoto = 'assets/leab.jpg';
+    }
+
     const updatedSession = {
       ...session,
       name: String(profileData.name || session.name || 'LUN RAKSA').toUpperCase(),
       role: profileData.role || session.role || 'Head Administrator',
-      photo: profileData.photo || session.photo || 'assets/lun_raksa.jpg',
+      photo: profileData.photo || session.photo || defaultPhoto,
       email: profileData.email || session.email,
       phone: profileData.phone || session.phone,
       bio: profileData.bio || session.bio,

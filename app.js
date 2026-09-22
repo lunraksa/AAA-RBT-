@@ -1710,7 +1710,10 @@ class AttendanceApp {
       role: isAdmin ? adminRole : 'Standard User (Read-Only)',
       isAdmin: isAdmin,
       photo: photoUrl,
-      username: cleanUser
+      username: cleanUser,
+      email: (matchedAdmin && matchedAdmin.email) || '',
+      phone: (matchedAdmin && matchedAdmin.phone) || '',
+      bio: (matchedAdmin && matchedAdmin.bio) || ''
     };
 
     if (window.storageManager) {
